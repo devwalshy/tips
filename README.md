@@ -78,6 +78,46 @@ npm run build
 npm start
 ```
 
+### Deploying to Fly.io
+
+The repository ships with a production-ready Docker image and `fly.toml` so you can host TipJar on [Fly.io](https://fly.io/) with the same runtime configuration used locally.
+
+1. **Install the Fly CLI** (see [Fly.io docs](https://fly.io/docs/hands-on/install-flyctl/)) and log in:
+
+   ```bash
+   fly auth login
+   ```
+
+2. **Create or update your Fly app configuration.** Edit the `app` name in `fly.toml` so it is unique within Fly (e.g. `tipjar-yourstore`). Optionally adjust the `primary_region` that is closest to your partners.
+
+3. **Create the Fly app without deploying yet** (this uses the existing configuration and Dockerfile):
+
+   ```bash
+   fly launch --no-deploy
+   ```
+
+4. **Configure required secrets.** At a minimum set `SESSION_SECRET` and `GEMINI_API_KEY`. Add any other environment variables from `env.example` that your store needs:
+
+   ```bash
+   fly secrets set SESSION_SECRET="<generate-a-random-string>" GEMINI_API_KEY="<your-gemini-key>"
+   # Optional extras
+   # fly secrets set DATABASE_URL="postgres://..." AZURE_FORM_RECOGNIZER_KEY="..." AZURE_FORM_RECOGNIZER_ENDPOINT="..."
+   ```
+
+5. **Deploy** using the included multi-stage Dockerfile (builds the client and bundles the server exactly like `npm run build` locally):
+
+   ```bash
+   fly deploy
+   ```
+
+6. **Open your production app:**
+
+   ```bash
+   fly open
+   ```
+
+The container listens on port `5000`, matching local development, and serves both the API and bundled client from the same process.
+
 ## 📖 How to Use
 
 ### Step 1: Upload Report
