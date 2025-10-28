@@ -1,4 +1,4 @@
 // Vercel serverless function entry point
-import handler from '../dist/index.js';
-export default handler;
+// This ensures the Express app is fully initialized before handling requests
+export { default } from '../dist/index.js';
 

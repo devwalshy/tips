@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { serveStatic, log } from "./static";
 
 // Check for required environment variables in production
 if (process.env.NODE_ENV === "production") {
@@ -49,43 +49,61 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+// Initialize the app - this must complete before handling requests
+let initPromise: Promise<void> | null = null;
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+async function initializeApp() {
+  if (initPromise) {
+    return initPromise;
   }
 
-  // Only start server if not in Vercel (for local development)
-  if (!process.env.VERCEL) {
-    const port = parseInt(process.env.PORT || "5000", 10);
-    const listenOptions: { port: number; host: string; reusePort?: boolean } = {
-      port,
-      host: "0.0.0.0",
-    };
+  initPromise = (async () => {
+    const server = await registerRoutes(app);
 
-    if (process.platform !== "win32") {
-      listenOptions.reusePort = true;
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+
+      res.status(status).json({ message });
+      throw err;
+    });
+
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
     }
 
-    server.listen(listenOptions, () => {
-      log(`serving on port ${port}`);
-    });
-  }
-})();
+    // Only start server if not in Vercel (for local development)
+    if (!process.env.VERCEL) {
+      const port = parseInt(process.env.PORT || "5000", 10);
+      const listenOptions: { port: number; host: string; reusePort?: boolean } = {
+        port,
+        host: "0.0.0.0",
+      };
 
-// Export for Vercel serverless
-export default app;
+      if (process.platform !== "win32") {
+        listenOptions.reusePort = true;
+      }
+
+      server.listen(listenOptions, () => {
+        log(`serving on port ${port}`);
+      });
+    }
+  })();
+
+  return initPromise;
+}
+
+// Start initialization immediately
+initializeApp();
+
+// Export for Vercel serverless - wrap to ensure initialization completes
+export default async function handler(req: Request, res: Response) {
+  await initializeApp();
+  return app(req, res);
+}
