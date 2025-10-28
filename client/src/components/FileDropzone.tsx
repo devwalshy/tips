@@ -119,12 +119,17 @@ export default function FileDropzone() {
       }
     } catch (error: any) {
       console.error(error);
-      setState(DropzoneState.ERROR);
 
-      // If we have a specific error message from the API, use it
-      // Otherwise use a generic message
+      const messageFromError =
+        error instanceof Error && error.message ? error.message : null;
+
       const errorMsg =
-        errorMessage || "Failed to extract partner information from the report";
+        messageFromError ||
+        errorMessage ||
+        "Failed to extract partner information from the report";
+
+      setErrorMessage(errorMsg);
+      setState(DropzoneState.ERROR);
 
       toast({
         title: "Processing failed",
