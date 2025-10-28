@@ -6,5 +6,5 @@ import { ThemeProvider } from "next-themes";
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
     <App />
-  </ThemeProvider>
+  </ThemeProvider>,
 );

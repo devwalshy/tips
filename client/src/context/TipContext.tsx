@@ -7,15 +7,22 @@ interface TipContextType {
   extractedText: string;
   setExtractedText: React.Dispatch<React.SetStateAction<string>>;
   distributionData: DistributionData | null;
-  setDistributionData: React.Dispatch<React.SetStateAction<DistributionData | null>>;
+  setDistributionData: React.Dispatch<
+    React.SetStateAction<DistributionData | null>
+  >;
 }
 
 const TipContext = createContext<TipContextType | undefined>(undefined);
 
-export function TipContextProvider({ children }: { children: React.ReactNode }) {
+export function TipContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [partnerHours, setPartnerHours] = useState<PartnerHours>([]);
   const [extractedText, setExtractedText] = useState<string>("");
-  const [distributionData, setDistributionData] = useState<DistributionData | null>(null);
+  const [distributionData, setDistributionData] =
+    useState<DistributionData | null>(null);
 
   return (
     <TipContext.Provider
@@ -25,7 +32,7 @@ export function TipContextProvider({ children }: { children: React.ReactNode }) 
         extractedText,
         setExtractedText,
         distributionData,
-        setDistributionData
+        setDistributionData,
       }}
     >
       {children}
