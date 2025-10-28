@@ -2,7 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
-
+image.pngimage.pngimage.pngimage.png
 // Check for required environment variables in production
 if (process.env.NODE_ENV === "production") {
   const requiredEnvVars = ["SESSION_SECRET"];
