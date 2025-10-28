@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTipContext } from "@/context/TipContext";
-import { readFileAsDataURL } from "@/lib/utils";
 import {
   UploadCloudIcon,
   Loader2Icon,
@@ -67,8 +66,6 @@ export default function FileDropzone() {
     setErrorMessage(null);
 
     try {
-      const dataUrl = await readFileAsDataURL(file);
-
       // Send the image to the server for OCR processing
       const formData = new FormData();
       formData.append("image", file);
@@ -78,11 +75,40 @@ export default function FileDropzone() {
         body: formData,
       });
 
-      const result = await response.json();
+      const clonedResponse = response.clone();
+      let result: any = null;
+      let rawResponseBody: string | null = null;
 
-      if (!response.ok) {
-        // Extract specific error message from the server response
-        const errorMsg = result.error || "OCR processing failed";
+      try {
+        result = await response.json();
+      } catch {
+        try {
+          rawResponseBody = await clonedResponse.text();
+        } catch {
+          rawResponseBody = null;
+        }
+      }
+
+      const trimmedRawResponse =
+        typeof rawResponseBody === "string" ? rawResponseBody.trim() : null;
+
+      const parsedError =
+        (result && (result.error || result.message)) ||
+        (trimmedRawResponse && trimmedRawResponse.length > 0
+          ? `Unexpected response from server: ${trimmedRawResponse.slice(0, 200)}${
+              trimmedRawResponse.length > 200 ? "…" : ""
+            }`
+          : null);
+
+      if (
+        !response.ok ||
+        result === null ||
+        (typeof result !== "object" && typeof result !== "function")
+      ) {
+        // Extract specific error message from the server response or fall back to a generic message
+        const errorMsg =
+          parsedError ||
+          `OCR request failed with status ${response.status} ${response.statusText}`;
         setErrorMessage(errorMsg);
         throw new Error(errorMsg);
       }
@@ -119,12 +145,17 @@ export default function FileDropzone() {
       }
     } catch (error: any) {
       console.error(error);
-      setState(DropzoneState.ERROR);
 
-      // If we have a specific error message from the API, use it
-      // Otherwise use a generic message
+      const messageFromError =
+        error instanceof Error && error.message ? error.message : null;
+
       const errorMsg =
-        errorMessage || "Failed to extract partner information from the report";
+        messageFromError ||
+        errorMessage ||
+        "Failed to extract partner information from the report";
+
+      setErrorMessage(errorMsg);
+      setState(DropzoneState.ERROR);
 
       toast({
         title: "Processing failed",
