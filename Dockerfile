@@ -1,30 +1,36 @@
-# syntax=docker/dockerfile:1
+# syntax = docker/dockerfile:1
 
-FROM node:20-alpine AS deps
+# Build stage
+FROM node:20-slim AS builder
+
 WORKDIR /app
-COPY package.json package-lock.json ./
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
 RUN npm ci
 
-FROM node:20-alpine AS build
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code
 COPY . .
+
+# Build the application
 RUN npm run build
 
-FROM node:20-alpine AS production-deps
+# Production stage
+FROM node:20-slim
+
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --only=production
 
-COPY --from=production-deps /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/package.json ./package.json
+# Copy built application from builder
+COPY --from=builder /app/dist ./dist
 
-EXPOSE 5000
+# Expose port
+EXPOSE 8080
 
-CMD ["npm", "run", "start"]
+# Start the application
+CMD ["node", "dist/index.js"]
