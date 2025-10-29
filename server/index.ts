@@ -2,7 +2,6 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
-image.pngimage.pngimage.pngimage.png
 // Check for required environment variables in production
 if (process.env.NODE_ENV === "production") {
   const requiredEnvVars = ["SESSION_SECRET"];
@@ -68,18 +67,20 @@ async function initializeApp() {
       throw err;
     });
 
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
+    // Only enable the Vite dev server when actually running in development.
+    const isDevelopment = process.env.NODE_ENV !== "production";
+
+    if (isDevelopment) {
       const { setupVite } = await import("./vite");
       await setupVite(app, server);
     } else {
       serveStatic(app);
     }
 
-    // Only start server if not in Vercel (for local development)
-    if (!process.env.VERCEL) {
+    // Only start server for local development (not in serverless environments)
+    const isServerless = process.env.VERCEL || process.env.NETLIFY;
+    
+    if (!isServerless) {
       const port = parseInt(process.env.PORT || "5000", 10);
       const listenOptions: { port: number; host: string; reusePort?: boolean } = {
         port,
@@ -107,3 +108,6 @@ export default async function handler(req: Request, res: Response) {
   await initializeApp();
   return app(req, res);
 }
+
+// Also export the app for Netlify and other platforms
+export { app };
