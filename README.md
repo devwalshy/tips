@@ -1,318 +1,153 @@
-# TipJar - Starbucks Tip Distribution Calculator
-
-A web application designed to simplify and fairly distribute cash tips among Starbucks partners based on their tippable hours.
-
-## 🎯 Problem Solved
-
-As a barista at Starbucks, handling weekly cash tips is time-consuming and often results in unfair distribution - partners at the end of the list often get most of the $1 bills. TipJar automates this process to ensure fair, efficient tip distribution.
-
-## ✨ Features
-
-- **📸 Photo-to-Data** - Upload a photo of your Tip Distribution Report
-- **🔍 OCR Processing** - Automatically extracts partner names and hours
-- **💰 Smart Distribution** - Calculates fair payouts based on hours worked
-- **💵 Bill Optimization** - Provides exact bill breakdown ($100, $50, $20, $10, $5, $1)
-- **📊 Distribution History** - Track past tip distributions
-- **✏️ Manual Entry** - Fallback option if OCR fails
-- **🔒 Privacy First** - All data processing happens on your server
-
-## 🆕 Multi-Engine OCR System (v3.0 - Document Intelligence)
-
-TipJar now uses **Azure AI Document Intelligence** for superior table extraction:
-
-### OCR Engines
-
-**Azure AI Document Intelligence (Recommended)** ⭐
-- ✅ **Designed for Tables** - Purpose-built for structured documents
-- ✅ **95-98% Accuracy** - Highest accuracy on Starbucks reports
-- ✅ **Starbucks-Compatible** - Uses Azure (same as Starbucks POS)
-- ✅ **FREE Tier** - 500 pages/month (perfect for stores)
-- ✅ **Privacy Compliant** - No AI training on your data
-- ✅ **Fast** - 1-3 second processing
-- ✅ **Table-Aware** - Understands row/column structure
-
-**Tesseract OCR (Fallback)**
-- ✅ **100% Free** - No API costs ever
-- ✅ **Works Offline** - No internet needed
-- ✅ **Privacy First** - All processing on your server
-- ⚠️ **Lower Accuracy** - 70-85% on phone photos
-
-See [AZURE_DOCUMENT_INTELLIGENCE.md](AZURE_DOCUMENT_INTELLIGENCE.md) for Azure setup or [OCR_IMPLEMENTATION.md](OCR_IMPLEMENTATION.md) for technical details.
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or pnpm
-
-### Installation
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd projectTipjar
-
-# Install dependencies
-npm install --legacy-peer-deps
-
-# Configure environment (optional - see env.example)
-# For best results, set up Azure Document Intelligence (FREE tier)
-# See AZURE_DOCUMENT_INTELLIGENCE.md for instructions
-
-# Start development server
-npm run dev
-```
-
-The application will be available at `http://localhost:5000`
-
-**Note:** TipJar works out of the box with Tesseract OCR (no configuration needed). For 95-98% accuracy, set up Azure Document Intelligence (see [AZURE_DOCUMENT_INTELLIGENCE.md](AZURE_DOCUMENT_INTELLIGENCE.md)).
-
-### Production Build
-
-```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
-
-### Deploying to Netlify 🚀
-
-TipJar is configured for easy deployment to [Netlify](https://www.netlify.com/) with serverless functions and automatic HTTPS.
-
-**Quick Deploy via Netlify UI** (Recommended):
-
-1. **Push your code to Git** (GitHub, GitLab, or Bitbucket)
-
-2. **Connect to Netlify:**
-   - Go to [app.netlify.com](https://app.netlify.com)
-   - Click "Add new site" → "Import an existing project"
-   - Choose your Git provider and repository
-   - Netlify will auto-detect the configuration
-
-3. **Set Environment Variables:**
-   - Go to Site settings → Environment variables
-   - Add: `SESSION_SECRET`, `AZURE_DI_KEY`, `AZURE_DI_ENDPOINT`, `OCR_ENGINE=auto`
-
-4. **Deploy** - Netlify will build and deploy automatically!
-
-**Deploy via CLI:**
-
-```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Login and deploy
-netlify login
-netlify init
-npm run netlify:deploy:prod
-```
-
-**📘 Full deployment guide:** See [NETLIFY_DEPLOYMENT.md](NETLIFY_DEPLOYMENT.md) for detailed instructions.
-
-**Free Tier Includes:**
-- ✅ 100GB bandwidth/month
-- ✅ Automatic HTTPS & CDN
-- ✅ Serverless functions
-- ✅ Deploy previews
-- ✅ Instant rollbacks
-
-## 📖 How to Use
-
-### Step 1: Upload Report
-
-1. Take a clear photo of your Starbucks Tip Distribution Report
-2. Click "Upload Report" in TipJar
-3. Select your image
-
-### Step 2: Review Extracted Data
-
-The app will automatically extract:
-- Partner names
-- Tippable hours for each partner
-- Total hours
-
-Review the extracted data for accuracy.
-
-### Step 3: Enter Tip Amount
-
-Enter the total cash tip amount to distribute.
-
-### Step 4: Calculate Distribution
-
-Click "Calculate Distribution" to see:
-- Each partner's payout
-- Exact bill breakdown for each partner
-- Total distribution summary
-
-### Step 5: Distribute Tips
-
-Use the bill breakdown to count out exact cash for each partner.
-
-## 🔧 Testing OCR
-
-Test the OCR functionality with sample images:
-
-```bash
-npm run test:ocr
-```
-
-This will process all images in `attached_assets/` and show:
-- Processing time
-- Partners extracted
-- Confidence scores
-- Detailed results
-
-## 📁 Project Structure
-
-```
-projectTipjar/
-├── client/                  # Frontend React application
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Page components
-│   │   ├── lib/            # Utilities and helpers
-│   │   └── context/        # React context providers
-│   └── index.html
-│
-├── server/                 # Backend Express application
-│   ├── api/
-│   │   ├── ocr.ts         # Tesseract OCR implementation
-│   │   └── gemini.ts      # [DEPRECATED] Old Gemini implementation
-│   ├── lib/
-│   │   ├── imagePreprocessor.ts  # Image enhancement
-│   │   ├── tableParser.ts        # Report parsing logic
-│   │   └── ocrConfig.ts          # Tesseract configuration
-│   ├── routes.ts          # API routes
-│   ├── storage.ts         # Database layer
-│   └── index.ts           # Server entry point
-│
-├── shared/                # Shared types and schemas
-│   └── schema.ts
-│
-└── OCR_IMPLEMENTATION.md  # Detailed OCR documentation
-```
-
-## 🛠️ Technology Stack
-
-**Frontend:**
-- React 19
-- TypeScript
-- Tailwind CSS
-- Wouter (routing)
-- React Query
-- Radix UI components
-
-**Backend:**
-- Node.js
-- Express
-- TypeScript
-- Azure AI Document Intelligence (OCR - primary)
-- Tesseract.js (OCR - fallback)
-- Sharp (image processing)
-- Drizzle ORM
-- PostgreSQL (optional)
-
-## 🔐 Privacy & Security
-
-- **No AI Training** - Azure Document Intelligence does NOT train on your data
-- **24-Hour Deletion** - Azure retains images for processing only, deleted after 24 hours
-- **Tesseract Fallback** - 100% on-premises processing available
-- **Enterprise Grade** - SOC 2, GDPR, and HIPAA compliant
-- **Starbucks Compatible** - Uses same Azure infrastructure as Starbucks POS
-- **Partner Privacy** - Meets Starbucks privacy requirements
-
-## 📝 Scripts
-
-```bash
-# Development
-npm run dev              # Start dev server with hot reload
-
-# Production
-npm run build            # Build for production
-npm run start            # Start production server
-
-# Testing
-npm run test:ocr         # Test OCR with sample images
-
-# Type Checking
-npm run check            # Run TypeScript type checking
-
-# Database
-npm run db:push          # Push database schema changes
-```
-
-## 🐛 Troubleshooting
-
-### OCR Not Working
-
-1. Check image quality - ensure good lighting and focus
-2. Make sure image shows the complete report table
-3. Try manual entry as fallback
-4. Run `npm run test:ocr` to diagnose issues
-
-### Low OCR Accuracy
-
-- Use well-lit photos
-- Keep camera straight (avoid angles)
-- Ensure text is readable
-- Use higher resolution images
-- See [OCR_IMPLEMENTATION.md](OCR_IMPLEMENTATION.md) for tuning
-
-### Build Errors
-
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install --legacy-peer-deps
-```
-
-## 📊 Performance
-
-**Azure Document Intelligence:**
-- **Processing Time:** 1-3 seconds per image
-- **Accuracy:** 95-98% on Starbucks reports
-- **Confidence:** ~95% typical
-- **Free Tier:** 500 pages/month
-
-**Tesseract (Fallback):**
-- **First Request:** 4-5 seconds (initializes worker)
-- **Subsequent Requests:** 2-3 seconds
-- **Accuracy:** 70-85% on phone photos
-- **Confidence Threshold:** 30% minimum
-
-**General:**
-- **Supported Image Sizes:** Up to 10MB
-- **Supported Formats:** JPG, PNG, WebP
-
-## 🤝 Contributing
-
-This project was created to solve a real problem at Starbucks Store #69600. If you have ideas for improvements:
-
-1. Test thoroughly with real Tip Distribution Reports
-2. Ensure privacy compliance is maintained
-3. Document any OCR improvements
-4. Consider scalability for multiple stores
-
-## 👤 Author
-
-**William Walsh**  
-Starbucks Store #69600
-
-_"If there's a Will, There's a Way!"_ - Lauren 2025
-
-## 📄 License
-
-MIT
-
-## 🙏 Acknowledgments
-
-- Starbucks partners who provided feedback
-- The team at Store #69600
-- Open source contributors to Tesseract.js and Sharp
+# ☕ Tip Steward – Starbucks Partner Tip Distribution
+
+Tip Steward reimagines the classic weekly tip count as a calm, mobile-first Starbucks
+partner experience. Upload a photo of the labor report, review partner hours, and
+count out equitable payouts with a UI inspired by the Starbucks mobile app.
 
 ---
 
-**Note:** This application is designed for Starbucks tip distribution but is not officially affiliated with Starbucks Corporation.
+## 1. Executive Summary
+- **Current pain:** Ad-hoc spreadsheets and hurried back-room math introduce
+discrepancies and erode trust among partners.
+- **Design vision:** A warm, minimalist dashboard that mirrors the Starbucks app,
+centering partners with clear payouts, soft transitions, and brand-right colors.
+- **Outcome:** Consistent weekly rituals—drop in the report, confirm the pool, and
+celebrate equitable distributions before the close shift huddle.
+
+---
+
+## 2. Code Architecture Refresh
+- **Modern stack:** React 19 + TypeScript + Vite with a clean `/src` layout.
+- **State management:** Context providers wrap the app for tip data, and React Query
+handles server interaction.
+- **Utilities:** Shared helpers live in `src/utils`, while UI components are organized
+under `src/components` for easy discovery.
+- **Tooling:** ESLint (flat config) + Prettier + Tailwind CSS keep the codebase
+consistent and Starbucks-clean.
+
+> **Project structure**
+>
+> ```text
+> src/
+> ├─ assets/
+> │  └─ styles/
+> ├─ components/
+> │  ├─ layout/
+> │  ├─ providers/
+> │  └─ ui/
+> ├─ context/
+> ├─ pages/
+> ├─ utils/
+> └─ main.tsx
+> ```
+
+---
+
+## 3. Starbucks UI / UX Highlights
+- **Mobile-first shell:** Sticky header with theme toggle and a floating navigation
+pill inspired by the Starbucks app tab bar.
+- **Partner dashboard:** Hero metrics track synced partners, total hours, hourly rate,
+and the current tip pool.
+- **Guided ritual:** Upload flow, tip entry, best practices, and distribution summary
+sit together for a predictable weekly cadence.
+- **Partner detail cards:** Each payout card explains the math, highlights the rounded
+value, and outlines the exact bill breakdown.
+- **Light + dark palettes:** Toggle between partner-light and partner-dark modes that
+respect Starbucks’ forest greens and warm neutrals.
+
+---
+
+## 4. Starbucks Design System Tokens
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| **Primary / Forest** | `#036635` | `#2a5a4c` |
+| **Pine** | `#1e3932` | `#10231e` |
+| **Accent Sky** | `#d4e9e2` | `#4d8576` |
+| **Latte Neutral** | `#f3ebe1` | `#c9b59c` |
+| **Cream Surface** | `#f9f6f1` | `#ece6dd` |
+| **Text Default** | `#0e0e0e` | `#f5f5f5` |
+
+- **Typography:** Inter (SoDo Sans–inspired) with generous letter spacing for labels
+and tight tracking for numbers.
+- **Spacing:** 8px baseline grid, 20px rounded cards (`--radius: 0.75rem`).
+- **Buttons:** Rounded pills with gradient fills and soft drop shadows (`--shadow-soft`).
+- **Icons:** Lucide icons sized 20–24px with clear contrast and accessible labels.
+
+---
+
+## 5. Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start the full stack (client + server)
+npm run dev
+
+# Type-check and lint
+npm run check
+npm run lint
+
+# Format code
+npm run format
+
+# Production build
+npm run build
+```
+
+The Vite dev server proxies API calls to the Express back end. Production builds
+output static assets to `dist/public` and a bundled server to `dist/`.
+
+---
+
+## 6. Netlify Deployment Guide
+1. **Connect the repository** at [Netlify](https://app.netlify.com) and choose this
+branch.
+2. **Build settings**
+   - Build command: `npm run build`
+   - Publish directory: `dist/public`
+3. **Environment variables** (Site settings → Environment variables)
+   - `SESSION_SECRET`
+   - `OCR_ENGINE` (e.g., `auto`, `azure`, or `tesseract`)
+   - Azure keys if using Document Intelligence: `AZURE_DI_KEY`, `AZURE_DI_ENDPOINT`
+4. **SPA routing & caching** are handled in `netlify.toml` (includes `/index.html`
+redirect and long-term asset caching).
+5. **Local smoke test**
+   ```bash
+   npm install -g netlify-cli
+   netlify login
+   npm run build
+   netlify deploy --dir=dist/public --functions=netlify/functions
+   ```
+6. Enable **Deploy Previews** for stakeholder sign-off on each pull request.
+
+---
+
+## 7. Feature Suggestions & Roadmap
+- Partner login with Netlify Identity for store-specific access.
+- Offline-ready mode via service workers and IndexedDB caching.
+- Exportable PDF recap for manager signatures or labor logs.
+- Lightweight charts to trend hourly rates across weeks.
+
+---
+
+## 8. Testing & Quality
+- `npm run lint` – ESLint with React, accessibility, Tailwind, and import ordering
+rules.
+- `npm run check` – TypeScript project-wide type safety.
+- Future CI recommendation: Netlify build + lint workflow on every PR to guard the
+brand experience.
+
+---
+
+## 9. Contributing
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the partner-ready workflow, coding
+standards, and commit etiquette that keep this project aligned with Starbucks’ design
+language.
+
+---
+
+### 🌱 Partner-first principle
+Every pixel, string, and doc is written for Starbucks partners—calm, clear, and ready
+for the next weekly tip ritual.

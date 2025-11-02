@@ -1,0 +1,154 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Inter", "SoDo Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: light;
+  --radius: 0.9rem;
+  --shadow-soft: 0 24px 60px -50px rgba(18, 37, 31, 0.8);
+  --shadow-strong: 0 32px 90px -60px rgba(18, 37, 31, 0.65);
+}
+
+[data-theme="partner-light"] {
+  color-scheme: light;
+  --background: 36 33% 97%;
+  --foreground: 150 24% 18%;
+  --surface: 0 0% 100%;
+  --surface-subtle: 160 25% 92%;
+  --surface-strong: 158 30% 21%;
+  --card: 0 0% 100%;
+  --card-foreground: 150 24% 18%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 150 24% 18%;
+  --primary: 153 51% 22%;
+  --primary-foreground: 36 33% 97%;
+  --secondary: 154 35% 80%;
+  --secondary-foreground: 150 24% 18%;
+  --muted: 162 16% 87%;
+  --muted-foreground: 156 11% 42%;
+  --accent: 34 64% 70%;
+  --accent-foreground: 153 51% 22%;
+  --destructive: 3 65% 51%;
+  --destructive-foreground: 36 33% 97%;
+  --border: 154 25% 85%;
+  --input: 0 0% 100%;
+  --ring: 153 51% 22%;
+  --brand-forest: 153 51% 22%;
+  --brand-pine: 150 24% 18%;
+  --brand-latte: 34 64% 82%;
+  --brand-cream: 36 33% 97%;
+  --brand-sky: 158 36% 84%;
+  --text-default: 150 24% 18%;
+  --text-muted: 156 13% 45%;
+  --text-on-dark: 36 33% 97%;
+  --chart-1: 153 51% 22%;
+  --chart-2: 154 35% 42%;
+  --chart-3: 157 35% 55%;
+  --chart-4: 34 64% 70%;
+  --chart-5: 28 61% 64%;
+}
+
+[data-theme="partner-dark"] {
+  color-scheme: dark;
+  --background: 158 31% 15%;
+  --foreground: 36 33% 97%;
+  --surface: 158 28% 18%;
+  --surface-subtle: 153 28% 16%;
+  --surface-strong: 150 24% 12%;
+  --card: 158 31% 15%;
+  --card-foreground: 36 33% 97%;
+  --popover: 158 31% 15%;
+  --popover-foreground: 36 33% 97%;
+  --primary: 153 51% 35%;
+  --primary-foreground: 36 33% 97%;
+  --secondary: 158 36% 42%;
+  --secondary-foreground: 36 33% 97%;
+  --muted: 158 27% 23%;
+  --muted-foreground: 160 13% 70%;
+  --accent: 34 64% 70%;
+  --accent-foreground: 150 24% 18%;
+  --destructive: 3 65% 51%;
+  --destructive-foreground: 36 33% 97%;
+  --border: 158 30% 23%;
+  --input: 158 27% 20%;
+  --ring: 154 35% 60%;
+  --brand-forest: 153 51% 35%;
+  --brand-pine: 150 24% 12%;
+  --brand-latte: 34 64% 70%;
+  --brand-cream: 36 33% 93%;
+  --brand-sky: 156 32% 46%;
+  --text-default: 36 33% 97%;
+  --text-muted: 160 13% 70%;
+  --text-on-dark: 36 33% 97%;
+  --chart-1: 153 51% 40%;
+  --chart-2: 158 36% 50%;
+  --chart-3: 155 35% 62%;
+  --chart-4: 34 64% 70%;
+  --chart-5: 28 61% 64%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-text-default antialiased;
+    font-feature-settings: "salt" 1, "liga" 1, "tnum" 1;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: hsl(var(--brand-forest) / 0.2);
+  }
+}
+
+@layer components {
+  .card-base {
+    @apply rounded-3xl border border-border/60 bg-surface text-text-default shadow-[var(--shadow-soft)];
+  }
+
+  .card-elevated {
+    @apply shadow-[var(--shadow-strong)];
+  }
+
+  .glass-panel {
+    @apply rounded-3xl border border-border/60 bg-surface/95;
+  }
+
+  .brand-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-colors;
+    background: hsl(var(--brand-forest));
+    color: hsl(var(--text-on-dark));
+  }
+
+  .brand-button:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .brand-button-secondary {
+    background: hsl(var(--brand-sky));
+    color: hsl(var(--brand-pine));
+  }
+
+  .stat-card {
+    @apply card-base flex flex-col gap-2 p-5;
+  }
+
+  .stat-value {
+    @apply text-3xl font-semibold text-text-default;
+    letter-spacing: -0.01em;
+  }
+
+  .stat-label {
+    @apply text-xs uppercase tracking-[0.2em] text-text-muted;
+  }
+
+  .section-title {
+    @apply text-base font-semibold text-text-default;
+    letter-spacing: -0.01em;
+  }
+}
