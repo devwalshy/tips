@@ -196,11 +196,7 @@ export default function Home() {
             </ul>
           </div>
           {distributionData && (
-            <ResultsSummaryCard
-              totalAmount={distributionData.totalAmount}
-              totalHours={distributionData.totalHours}
-              hourlyRate={distributionData.hourlyRate}
-            />
+            <ResultsSummaryCard distribution={distributionData} />
           )}
         </div>
       </motion.section>
