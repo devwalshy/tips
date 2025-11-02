@@ -3,9 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
 import { analyzeImageWithService } from "./lib/ocrService";
-import { formatOCRResult } from "../client/src/lib/formatUtils";
-import { calculatePayout } from "../client/src/lib/utils";
-import { roundAndCalculateBills } from "../client/src/lib/billCalc";
+import { formatOCRResult } from "../src/utils/formatUtils";
+import { calculatePayout } from "../src/utils/utils";
+import { roundAndCalculateBills } from "../src/utils/billCalc";
 import { partnerHoursSchema } from "@shared/schema";
 
 // Setup file uploads
