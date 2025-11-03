@@ -1,16 +1,18 @@
 import { CalendarDays } from "lucide-react";
 import { DistributionData } from "@shared/schema";
 import { cn, formatCurrency, formatDate } from "@/utils/utils";
+import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type ResultsSummaryCardProps = {
   distribution: DistributionData;
 };
 
-export default function ResultsSummaryCard({
-  distribution,
-}: ResultsSummaryCardProps) {
+export default function ResultsSummaryCard({ distribution }: ResultsSummaryCardProps) {
   const { totalHours, hourlyRate, totalAmount, partnerPayouts } = distribution;
   const currentDate = formatDate(new Date());
+  const { toast } = useToast();
 
   const billsNeeded = partnerPayouts.reduce<Record<number, number>>(
     (accumulator, partner) => {
@@ -24,9 +26,59 @@ export default function ResultsSummaryCard({
   );
 
   const sortedBills = Object.entries(billsNeeded).sort(
-    ([denominationA], [denominationB]) =>
-      Number(denominationB) - Number(denominationA),
+    ([denominationA], [denominationB]) => Number(denominationB) - Number(denominationA),
   );
+
+  const handleCopySummary = async () => {
+    const summaryLines = [
+      `Tip pool: ${formatCurrency(totalAmount)}`,
+      `Total hours: ${totalHours.toFixed(2)}`,
+      `Hourly rate: $${hourlyRate ? hourlyRate.toFixed(2) : "0.00"}`,
+      "",
+      "Partner breakdown:",
+      ...partnerPayouts.map(
+        (partner) =>
+          `${partner.name} • ${partner.hours} hrs • ${formatCurrency(partner.rounded)}`,
+      ),
+    ];
+
+    try {
+      await navigator.clipboard.writeText(summaryLines.join("\n"));
+      toast({
+        title: "Summary copied",
+        description: "Share the results with your shift leads instantly.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Copy failed",
+        description: "We couldn't access the clipboard. Try again or copy manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyTable = async () => {
+    const header = "Partner,Hours,Rounded";
+    const rows = partnerPayouts.map(
+      (partner) => `${escapeCsv(partner.name)},${partner.hours},${partner.rounded}`,
+    );
+
+    try {
+      await navigator.clipboard.writeText([header, ...rows].join("\n"));
+      toast({
+        title: "Table copied",
+        description: "Paste into Sheets or Excel to archive the split.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Copy failed",
+        description: "Clipboard access was blocked. Paste manually instead.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <section className="card-base card-elevated flex flex-col gap-8 rounded-[1.5rem] px-6 py-8 md:px-8">
@@ -46,11 +98,7 @@ export default function ResultsSummaryCard({
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <SummaryMetric
-          label="Total hours"
-          value={totalHours.toFixed(2)}
-          tone="hours"
-        />
+        <SummaryMetric label="Total hours" value={totalHours.toFixed(2)} tone="hours" />
         <SummaryMetric
           label="Hourly rate"
           value={hourlyRate ? `$${hourlyRate.toFixed(2)}` : "—"}
@@ -99,7 +147,7 @@ export default function ResultsSummaryCard({
                 Bills Required for This Split
               </h4>
             </div>
-            <span className="rounded-full bg-brand-forest/12 px-4 py-1.5 text-sm font-semibold text-brand-forest">
+            <span className="bg-brand-forest/12 rounded-full px-4 py-1.5 text-sm font-semibold text-brand-forest">
               {formatCurrency(totalAmount)}
             </span>
           </div>
@@ -118,6 +166,43 @@ export default function ResultsSummaryCard({
                 No bills required yet
               </span>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[1.35rem] border border-border/60 bg-surface px-5 py-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
+              Export Options
+            </span>
+            <p className="text-sm text-text-muted">
+              Copy a clean summary or CSV-ready table for your records.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full border-brand-forest/50 text-brand-forest hover:border-brand-forest hover:text-brand-forest"
+              onClick={() => {
+                void handleCopySummary();
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Copy summary
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full border-border/60 text-text-default hover:border-brand-forest hover:text-brand-forest"
+              onClick={() => {
+                void handleCopyTable();
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Copy table
+            </Button>
           </div>
         </div>
       </section>
@@ -149,10 +234,15 @@ function SummaryMetric({
         toneClasses[tone],
       )}
     >
-      <span className="text-xs uppercase tracking-[0.32em] text-text-muted">
-        {label}
-      </span>
+      <span className="text-xs uppercase tracking-[0.32em] text-text-muted">{label}</span>
       <span className="text-2xl font-semibold tracking-tight">{value}</span>
     </div>
   );
+}
+
+function escapeCsv(value: string) {
+  if (value.includes(",") || value.includes('"')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
 }

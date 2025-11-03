@@ -2,11 +2,12 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTipContext } from "@/context/TipContext";
 import { parseManualEntry } from "@/utils/utils";
@@ -16,13 +17,10 @@ type ManualEntryModalProps = {
   onClose: () => void;
 };
 
-export default function ManualEntryModal({
-  isOpen,
-  onClose,
-}: ManualEntryModalProps) {
+export default function ManualEntryModal({ isOpen, onClose }: ManualEntryModalProps) {
   const [manualInput, setManualInput] = useState("");
   const { toast } = useToast();
-  const { setPartnerHours, setExtractedText } = useTipContext();
+  const { setPartnerHours, setExtractedText, setOcrMeta } = useTipContext();
 
   const handleSave = () => {
     if (!manualInput.trim()) {
@@ -48,6 +46,9 @@ export default function ManualEntryModal({
 
       setPartnerHours(parsedData);
       setExtractedText(manualInput);
+      setOcrMeta({
+        source: "manual",
+      });
 
       toast({
         title: "Partners saved",
@@ -67,14 +68,14 @@ export default function ManualEntryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl bg-[#3a5c5c] border border-[#4c6767] text-[#f5f5f5]">
+      <DialogContent className="border border-border bg-surface text-text-default sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-[#f5f5f5]">
+          <DialogTitle className="text-xl font-semibold text-text-default">
             Manual Partner Entry
           </DialogTitle>
-          <DialogDescription className="text-[#bfbfbf]">
+          <DialogDescription className="text-sm text-text-muted">
             Enter partner names and hours, one per line in the format:
-            <span className="font-mono bg-[#364949] px-2 py-1 rounded ml-2 text-[#f5f5f5]">
+            <span className="ml-2 rounded bg-background px-2 py-1 font-mono text-text-default">
               Name: hours
             </span>
           </DialogDescription>
@@ -82,20 +83,18 @@ export default function ManualEntryModal({
 
         <textarea
           value={manualInput}
-          onChange={(e) => setManualInput(e.target.value)}
-          className="h-64 bg-[#364949] border border-[#4c6767] font-mono resize-none w-full rounded-md text-[#f5f5f5] p-3"
-          placeholder="John Smith: 32
-Maria Garcia: 24
-David Johnson: 40"
+          onChange={(event) => setManualInput(event.target.value)}
+          className="h-64 w-full rounded-xl border border-border bg-background p-3 font-mono text-sm text-text-default outline-none transition focus:border-brand-forest focus:ring-2 focus:ring-brand-forest/30"
+          placeholder={`John Smith: 32\nMaria Garcia: 24\nDavid Johnson: 40`}
         />
 
-        <DialogFooter>
-          <button className="btn btn-transparent mr-2" onClick={onClose}>
+        <DialogFooter className="flex items-center justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button className="btn btn-primary" onClick={handleSave}>
-            Save Partners
-          </button>
+          </Button>
+          <Button className="brand-button" onClick={handleSave}>
+            Save partners
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

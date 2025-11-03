@@ -7,20 +7,33 @@ import { useTipContext } from "@/context/TipContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/utils/queryClient";
 import { calculateHourlyRate, formatCurrency } from "@/utils/utils";
+import { Button } from "@/components/ui/button";
+import { DistributionData } from "@shared/schema";
 import BillBreakdownForm, {
   BillCounts,
   createInitialBillCounts,
   getBillTotal,
 } from "@/components/BillBreakdownForm";
+import PartnerRosterEditor from "@/components/PartnerRosterEditor";
+import ManualEntryModal from "@/components/ManualEntryModal";
+import HistoryModal from "@/components/HistoryModal";
 
 export default function Home() {
   const [billCounts, setBillCounts] = useState<BillCounts>(() =>
     createInitialBillCounts(),
   );
   const [isCalculating, setIsCalculating] = useState(false);
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { toast } = useToast();
-  const { partnerHours, distributionData, setDistributionData } =
-    useTipContext();
+  const {
+    partnerHours,
+    distributionData,
+    setDistributionData,
+    addDistributionToHistory,
+    rotationSeed,
+    advanceRotation,
+  } = useTipContext();
 
   const totalHours = useMemo(
     () => partnerHours.reduce((sum, partner) => sum + partner.hours, 0),
@@ -64,20 +77,28 @@ export default function Home() {
     setIsCalculating(true);
 
     try {
-      const computedHourlyRate = calculateHourlyRate(
-        billTotal,
-        totalHours,
-      );
+      const computedHourlyRate = calculateHourlyRate(billTotal, totalHours);
+
+      const rotationOffset = partnerHours.length ? rotationSeed % partnerHours.length : 0;
 
       const res = await apiRequest("POST", "/api/distributions/calculate", {
         partnerHours,
         totalAmount: billTotal,
         totalHours,
         hourlyRate: computedHourlyRate,
+        rotationOffset,
       });
 
-      const calculatedData = await res.json();
+      const calculatedDataJson = (await res.json()) as unknown;
+      const calculatedData = calculatedDataJson as DistributionData;
       setDistributionData(calculatedData);
+
+      addDistributionToHistory({
+        partnerHours,
+        distribution: calculatedData,
+      });
+
+      advanceRotation();
 
       toast({
         title: "Distribution ready",
@@ -111,8 +132,9 @@ export default function Home() {
             Settle the pool with clarity and calm
           </h2>
           <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
-            Welcome to your serene cash prep ritual. Count what you have, confirm partner hours,
-            and share payouts without feeling rushed. Everything you need stays in one quiet view.
+            Welcome to your serene cash prep ritual. Count what you have, confirm partner
+            hours, and share payouts without feeling rushed. Everything you need stays in
+            one quiet view.
           </p>
         </div>
 
@@ -154,12 +176,14 @@ export default function Home() {
               Gather partner hours
             </h3>
             <p className="text-sm leading-relaxed text-text-muted">
-              Upload the weekly labor export or enter shifts manually. Your data stays on this
-              device so you can focus on calm, accurate sharing.
+              Upload the weekly labor export or enter shifts manually. Your data stays on
+              this device so you can focus on calm, accurate sharing.
             </p>
           </header>
 
-          <FileDropzone />
+          <FileDropzone onManualEntryRequested={() => setManualEntryOpen(true)} />
+
+          <PartnerRosterEditor />
 
           <div className="h-px w-full bg-border/60" aria-hidden="true" />
 
@@ -173,7 +197,8 @@ export default function Home() {
                   Count the bills you have on hand
                 </h4>
                 <p className="text-xs text-text-muted">
-                  Enter only the bills you counted. We’ll total the pool from those entries.
+                  Enter only the bills you counted. We’ll total the pool from those
+                  entries.
                 </p>
               </div>
               <span className="rounded-full bg-surface-subtle/70 px-4 py-2 text-sm font-semibold text-text-default">
@@ -195,7 +220,9 @@ export default function Home() {
           <button
             type="button"
             className="brand-button w-full justify-center"
-            onClick={handleCalculate}
+            onClick={() => {
+              void handleCalculate();
+            }}
             disabled={isCalculating}
           >
             {isCalculating ? "Calculating…" : "Create this split"}
@@ -203,7 +230,7 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="card-base px-6 py-7 md:px-7">
+          <div className="card-base flex flex-col gap-4 px-6 py-7 md:px-7">
             <h3 className="text-lg font-semibold tracking-tight text-text-default md:text-xl">
               Gentle reminders
             </h3>
@@ -212,10 +239,16 @@ export default function Home() {
               <li>Count together with a shift lead to keep the ritual consistent.</li>
               <li>Review the split before partners clock out so everyone aligns.</li>
             </ul>
+            <Button
+              type="button"
+              variant="outline"
+              className="self-start rounded-full border-brand-forest/60 text-brand-forest hover:border-brand-forest hover:text-brand-forest"
+              onClick={() => setHistoryOpen(true)}
+            >
+              View history
+            </Button>
           </div>
-          {distributionData && (
-            <ResultsSummaryCard distribution={distributionData} />
-          )}
+          {distributionData && <ResultsSummaryCard distribution={distributionData} />}
         </div>
       </motion.section>
 
@@ -228,6 +261,12 @@ export default function Home() {
           <PartnerPayoutsList distributionData={distributionData} />
         </motion.section>
       )}
+
+      <ManualEntryModal
+        isOpen={manualEntryOpen}
+        onClose={() => setManualEntryOpen(false)}
+      />
+      <HistoryModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
     </div>
   );
 }
@@ -235,7 +274,9 @@ export default function Home() {
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-2 rounded-[1.5rem] border border-border/60 bg-surface px-5 py-5 text-left">
-      <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">{label}</span>
+      <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
+        {label}
+      </span>
       <span className="text-2xl font-semibold tracking-tight text-text-default md:text-[1.8rem]">
         {value}
       </span>

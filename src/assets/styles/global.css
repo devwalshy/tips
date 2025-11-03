@@ -5,7 +5,13 @@
 @tailwind utilities;
 
 :root {
-  font-family: "Inter", "SoDo Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    "Inter",
+    "SoDo Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   color-scheme: light;
   --radius: 1.25rem;
   --shadow-soft: 0 32px 90px -60px rgba(12, 36, 27, 0.6);
@@ -14,80 +20,80 @@
 
 [data-theme="partner-light"] {
   color-scheme: light;
-  --background: 32 37% 96%;
-  --foreground: 165 13% 15%;
-  --surface: 32 30% 99%;
-  --surface-subtle: 150 22% 92%;
-  --surface-strong: 160 24% 25%;
+  --background: 158 32% 96%;
+  --foreground: 160 28% 20%;
+  --surface: 160 20% 99%;
+  --surface-subtle: 156 26% 92%;
+  --surface-strong: 160 28% 28%;
   --card: 0 0% 100%;
-  --card-foreground: 165 13% 15%;
+  --card-foreground: 160 28% 20%;
   --popover: 0 0% 100%;
-  --popover-foreground: 165 13% 15%;
-  --primary: 158 48% 27%;
-  --primary-foreground: 36 45% 96%;
-  --secondary: 156 29% 80%;
-  --secondary-foreground: 165 13% 15%;
-  --muted: 150 12% 88%;
-  --muted-foreground: 160 10% 42%;
-  --accent: 35 65% 74%;
-  --accent-foreground: 158 48% 27%;
-  --destructive: 3 65% 48%;
-  --destructive-foreground: 36 45% 96%;
-  --border: 32 24% 86%;
+  --popover-foreground: 160 28% 20%;
+  --primary: 160 100% 22%;
+  --primary-foreground: 36 60% 96%;
+  --secondary: 161 45% 70%;
+  --secondary-foreground: 160 28% 20%;
+  --muted: 158 20% 86%;
+  --muted-foreground: 160 16% 42%;
+  --accent: 35 75% 78%;
+  --accent-foreground: 160 100% 22%;
+  --destructive: 3 70% 48%;
+  --destructive-foreground: 36 60% 96%;
+  --border: 156 22% 84%;
   --input: 0 0% 100%;
-  --ring: 158 48% 27%;
-  --brand-forest: 158 48% 27%;
-  --brand-pine: 164 15% 24%;
-  --brand-latte: 35 65% 82%;
-  --brand-cream: 36 45% 96%;
-  --brand-sky: 158 36% 85%;
-  --text-default: 165 13% 15%;
-  --text-muted: 158 10% 42%;
-  --text-on-dark: 36 45% 96%;
-  --chart-1: 158 48% 27%;
-  --chart-2: 162 30% 38%;
-  --chart-3: 156 32% 50%;
-  --chart-4: 35 65% 74%;
-  --chart-5: 28 60% 66%;
+  --ring: 160 100% 22%;
+  --brand-forest: 160 100% 22%;
+  --brand-pine: 162 54% 19%;
+  --brand-latte: 34 80% 80%;
+  --brand-cream: 36 70% 95%;
+  --brand-sky: 160 55% 82%;
+  --text-default: 160 28% 20%;
+  --text-muted: 160 16% 46%;
+  --text-on-dark: 36 60% 96%;
+  --chart-1: 160 100% 22%;
+  --chart-2: 158 45% 38%;
+  --chart-3: 156 38% 52%;
+  --chart-4: 35 75% 78%;
+  --chart-5: 28 70% 66%;
 }
 
 [data-theme="partner-dark"] {
   color-scheme: dark;
-  --background: 158 22% 14%;
-  --foreground: 36 45% 96%;
-  --surface: 160 21% 17%;
-  --surface-subtle: 154 23% 20%;
-  --surface-strong: 150 24% 12%;
-  --card: 158 22% 18%;
-  --card-foreground: 36 45% 96%;
-  --popover: 158 22% 18%;
-  --popover-foreground: 36 45% 96%;
-  --primary: 154 50% 38%;
-  --primary-foreground: 36 45% 96%;
-  --secondary: 160 22% 42%;
-  --secondary-foreground: 36 45% 96%;
-  --muted: 160 16% 25%;
-  --muted-foreground: 160 13% 70%;
-  --accent: 35 65% 70%;
-  --accent-foreground: 158 48% 27%;
-  --destructive: 3 65% 48%;
-  --destructive-foreground: 36 45% 96%;
-  --border: 160 20% 25%;
-  --input: 158 21% 22%;
-  --ring: 154 32% 62%;
-  --brand-forest: 154 50% 38%;
-  --brand-pine: 150 24% 12%;
-  --brand-latte: 35 65% 70%;
-  --brand-cream: 36 45% 92%;
-  --brand-sky: 156 32% 46%;
-  --text-default: 36 45% 96%;
-  --text-muted: 160 13% 70%;
-  --text-on-dark: 36 45% 96%;
-  --chart-1: 154 50% 42%;
-  --chart-2: 160 28% 52%;
-  --chart-3: 156 32% 62%;
-  --chart-4: 35 65% 70%;
-  --chart-5: 28 60% 66%;
+  --background: 160 32% 12%;
+  --foreground: 36 60% 94%;
+  --surface: 160 28% 16%;
+  --surface-subtle: 160 26% 18%;
+  --surface-strong: 160 36% 10%;
+  --card: 160 28% 18%;
+  --card-foreground: 36 60% 94%;
+  --popover: 160 28% 18%;
+  --popover-foreground: 36 60% 94%;
+  --primary: 160 70% 32%;
+  --primary-foreground: 36 70% 96%;
+  --secondary: 160 32% 40%;
+  --secondary-foreground: 36 60% 94%;
+  --muted: 160 26% 24%;
+  --muted-foreground: 160 20% 68%;
+  --accent: 35 70% 70%;
+  --accent-foreground: 160 100% 22%;
+  --destructive: 3 70% 48%;
+  --destructive-foreground: 36 60% 94%;
+  --border: 160 28% 28%;
+  --input: 160 28% 20%;
+  --ring: 160 70% 32%;
+  --brand-forest: 160 100% 22%;
+  --brand-pine: 160 48% 18%;
+  --brand-latte: 34 70% 70%;
+  --brand-cream: 36 50% 90%;
+  --brand-sky: 160 45% 50%;
+  --text-default: 36 60% 94%;
+  --text-muted: 160 18% 68%;
+  --text-on-dark: 36 60% 94%;
+  --chart-1: 160 70% 34%;
+  --chart-2: 160 40% 48%;
+  --chart-3: 160 32% 58%;
+  --chart-4: 35 70% 70%;
+  --chart-5: 28 65% 64%;
 }
 
 @layer base {
@@ -97,7 +103,10 @@
 
   body {
     @apply bg-background text-text-default antialiased;
-    font-feature-settings: "salt" 1, "liga" 1, "tnum" 1;
+    font-feature-settings:
+      "salt" 1,
+      "liga" 1,
+      "tnum" 1;
     min-height: 100vh;
     letter-spacing: -0.01em;
   }
