@@ -9,14 +9,14 @@ export function AppLayout({ children }: PropsWithChildren) {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-text-default">
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-5 md:px-8 md:py-7">
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-5 py-5 md:px-8 md:py-6">
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] uppercase tracking-[0.4em] text-text-muted">
+            <span className="text-[11px] uppercase tracking-[0.32em] text-text-muted">
               Tip Steward
             </span>
-            <h1 className="text-xl font-semibold tracking-tight text-text-default md:text-2xl">
-              Weekly tip ritual
+            <h1 className="text-[1.55rem] font-semibold tracking-tight text-text-default md:text-[1.75rem]">
+              A calm space to settle tips
             </h1>
           </div>
 
@@ -40,7 +40,7 @@ export function AppLayout({ children }: PropsWithChildren) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="mx-auto flex w-full max-w-5xl flex-col gap-8 pb-10"
+          className="mx-auto flex w-full max-w-4xl flex-col gap-10 pb-12"
         >
           {children}
         </motion.div>

@@ -38,86 +38,86 @@ export function BillBreakdownForm({
   onBillCountChange,
 }: BillBreakdownFormProps) {
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        {BILL_DENOMINATIONS.map((denomination) => {
-          const count = billCounts[denomination.value] ?? 0;
+    <div className="grid gap-4 sm:grid-cols-2">
+      {BILL_DENOMINATIONS.map((denomination) => {
+        const count = billCounts[denomination.value] ?? 0;
 
-          return (
-            <div
-              key={denomination.value}
-              className="rounded-3xl border border-border/50 bg-surface px-5 py-5"
-            >
-              <div className="flex flex-col gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-text-default">
-                    {denomination.label}
-                  </p>
-                  <p className="text-xs text-text-muted">
-                    {formatCurrency(denomination.value)} each
-                  </p>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className={clsx(
-                        "flex h-9 w-9 items-center justify-center rounded-full border transition-colors",
-                        count === 0
-                          ? "border-border/60 text-text-muted"
-                          : "border-brand-forest/70 text-brand-forest hover:border-brand-forest",
-                      )}
-                      onClick={() =>
-                        onBillCountChange(
-                          denomination.value,
-                          Math.max(0, count - 1),
-                        )
-                      }
-                      aria-label={`Remove one ${denomination.label}`}
-                      disabled={count === 0}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <input
-                      id={`bill-${denomination.value}`}
-                      name={`bill-${denomination.value}`}
-                      type="number"
-                      min={0}
-                      inputMode="numeric"
-                      pattern="\\d*"
-                      value={count}
-                      onChange={(event) => {
-                        const nextValue = Number(event.target.value);
-                        const sanitized = Number.isNaN(nextValue) ? 0 : nextValue;
+        return (
+          <article
+            key={denomination.value}
+            className="flex flex-col gap-4 rounded-[1.5rem] border border-border/60 bg-background/70 px-5 py-5 shadow-sm shadow-brand-pine/5"
+          >
+            <header className="flex flex-col gap-1">
+              <p className="text-sm font-semibold text-text-default">
+                {denomination.label}
+              </p>
+              <p className="text-xs text-text-muted">
+                {formatCurrency(denomination.value)} each
+              </p>
+            </header>
 
-                        onBillCountChange(
-                          denomination.value,
-                          Math.max(0, sanitized),
-                        );
-                      }}
-                      className="h-10 w-20 rounded-full border border-border/60 bg-background px-3 text-center text-sm font-semibold text-text-default outline-none focus:border-brand-forest focus:ring-2 focus:ring-brand-forest/30"
-                      aria-label={`Count of ${denomination.label}`}
-                    />
-                    <button
-                      type="button"
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-forest/70 text-brand-forest transition-colors hover:border-brand-forest"
-                      onClick={() =>
-                        onBillCountChange(denomination.value, count + 1)
-                      }
-                      aria-label={`Add one ${denomination.label}`}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <p className="text-sm font-semibold text-text-default">
-                    {formatCurrency(count * denomination.value)}
-                  </p>
-                </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className={clsx(
+                    "flex h-9 w-9 items-center justify-center rounded-full border transition-colors",
+                    count === 0
+                      ? "border-border/70 text-text-muted"
+                      : "border-brand-forest/80 text-brand-forest hover:border-brand-forest",
+                  )}
+                  onClick={() =>
+                    onBillCountChange(
+                      denomination.value,
+                      Math.max(0, count - 1),
+                    )
+                  }
+                  aria-label={`Remove one ${denomination.label}`}
+                  disabled={count === 0}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <input
+                  id={`bill-${denomination.value}`}
+                  name={`bill-${denomination.value}`}
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  pattern="\\d*"
+                  value={count}
+                  onChange={(event) => {
+                    const nextValue = Number(event.target.value);
+                    const sanitized = Number.isNaN(nextValue) ? 0 : nextValue;
+
+                    onBillCountChange(
+                      denomination.value,
+                      Math.max(0, sanitized),
+                    );
+                  }}
+                  className="h-11 w-24 rounded-full border border-border/60 bg-surface px-4 text-center text-sm font-semibold text-text-default outline-none transition focus:border-brand-forest focus:ring-2 focus:ring-brand-forest/30"
+                  aria-label={`Count of ${denomination.label}`}
+                />
+                <button
+                  type="button"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-forest/80 text-brand-forest transition-colors hover:border-brand-forest"
+                  onClick={() =>
+                    onBillCountChange(denomination.value, count + 1)
+                  }
+                  aria-label={`Add one ${denomination.label}`}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
               </div>
+              <p className="text-sm font-medium text-text-muted">
+                Subtotal
+                <span className="ml-2 text-base font-semibold text-text-default">
+                  {formatCurrency(count * denomination.value)}
+                </span>
+              </p>
             </div>
-          );
-        })}
-      </div>
+          </article>
+        );
+      })}
     </div>
   );
 }

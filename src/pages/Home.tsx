@@ -96,32 +96,35 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-4">
+    <div className="flex flex-col gap-12 pb-6">
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="card-base card-elevated flex flex-col gap-8 px-6 py-7 md:px-10 md:py-9"
+        className="card-base card-elevated flex flex-col gap-8 px-7 py-8 md:px-10 md:py-10"
       >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex max-w-2xl flex-col gap-3">
-            <p className="text-xs uppercase tracking-[0.35em] text-text-muted">Weekly rhythm</p>
-            <h2 className="text-2xl font-semibold tracking-tight text-text-default md:text-3xl">
-              Reconcile tips with a calm, repeatable flow
-            </h2>
-            <p className="text-sm text-text-muted">
-              Move through counting cash, confirming hours, and sharing payouts without the rush.
-              Tip Steward keeps everything aligned so partners end each shift with confidence.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <HeroStat label="Partners" value={partnersSynced.toString().padStart(2, "0")} />
-            <HeroStat label="Total hours" value={totalHours.toFixed(1).replace(/\.0$/, "")} />
-          </div>
+        <div className="flex flex-col gap-5">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
+            Weekly closeout
+          </p>
+          <h2 className="text-[1.9rem] font-semibold tracking-tight text-text-default md:text-[2.1rem]">
+            Settle the pool with clarity and calm
+          </h2>
+          <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
+            Welcome to your serene cash prep ritual. Count what you have, confirm partner hours,
+            and share payouts without feeling rushed. Everything you need stays in one quiet view.
+          </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <HeroStat
+            label="Partners counted"
+            value={partnersSynced.toString().padStart(2, "0")}
+          />
+          <HeroStat
+            label="Shared hours"
+            value={totalHours.toFixed(1).replace(/\.0$/, "")}
+          />
           <HeroStat
             label="Tip pool"
             value={
@@ -132,7 +135,10 @@ export default function Home() {
                   : "$0"
             }
           />
-          <HeroStat label="Hourly rate" value={hourlyRate ? `$${hourlyRate.toFixed(2)}` : "—"} />
+          <HeroStat
+            label="Hourly rate"
+            value={hourlyRate ? `$${hourlyRate.toFixed(2)}` : "—"}
+          />
         </div>
       </motion.section>
 
@@ -140,29 +146,39 @@ export default function Home() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut", delay: 0.05 }}
-        className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]"
+        className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]"
       >
-        <div className="card-base card-elevated flex flex-col gap-8 px-6 py-7 md:px-8 md:py-9">
-          <div className="flex flex-col gap-2">
-            <h3 className="text-lg font-semibold tracking-tight text-text-default">Tip distribution</h3>
-            <p className="text-sm text-text-muted">
-              Upload the weekly labor report or enter hours manually. We’ll mirror the math automatically once bills are counted.
+        <div className="card-base card-elevated flex flex-col gap-8 px-6 py-8 md:px-9">
+          <header className="space-y-3">
+            <h3 className="text-lg font-semibold tracking-tight text-text-default md:text-xl">
+              Gather partner hours
+            </h3>
+            <p className="text-sm leading-relaxed text-text-muted">
+              Upload the weekly labor export or enter shifts manually. Your data stays on this
+              device so you can focus on calm, accurate sharing.
             </p>
-          </div>
+          </header>
 
           <FileDropzone />
 
-          <section className="space-y-5 rounded-3xl border border-border/60 bg-surface-subtle/40 px-5 py-5">
+          <div className="h-px w-full bg-border/60" aria-hidden="true" />
+
+          <section className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-1">
-                <span className="text-sm font-semibold text-text-default">Bill counter</span>
+                <span className="text-[11px] uppercase tracking-[0.28em] text-text-muted">
+                  Cash prep
+                </span>
+                <h4 className="text-base font-semibold tracking-tight text-text-default">
+                  Count the bills you have on hand
+                </h4>
                 <p className="text-xs text-text-muted">
-                  Enter the number of each bill on hand. We total only what you record, so partial counts are welcome.
+                  Enter only the bills you counted. We’ll total the pool from those entries.
                 </p>
               </div>
-              <div className="text-sm font-semibold text-text-default">
+              <span className="rounded-full bg-surface-subtle/70 px-4 py-2 text-sm font-semibold text-text-default">
                 {formatCurrency(billTotal)}
-              </div>
+              </span>
             </div>
 
             <BillBreakdownForm
@@ -182,17 +198,19 @@ export default function Home() {
             onClick={handleCalculate}
             disabled={isCalculating}
           >
-            {isCalculating ? "Calculating…" : "Calculate distribution"}
+            {isCalculating ? "Calculating…" : "Create this split"}
           </button>
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="card-base px-6 py-6 md:px-7 md:py-7">
-            <h3 className="text-lg font-semibold tracking-tight text-text-default">Closeout checklist</h3>
-            <ul className="mt-4 space-y-3 text-sm text-text-muted">
+          <div className="card-base px-6 py-7 md:px-7">
+            <h3 className="text-lg font-semibold tracking-tight text-text-default md:text-xl">
+              Gentle reminders
+            </h3>
+            <ul className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
               <li>Match partner names to the labor report before uploading.</li>
-              <li>Count cash together with a partner lead to reduce recounts.</li>
-              <li>Share the distribution before partners clock out for clarity.</li>
+              <li>Count together with a shift lead to keep the ritual consistent.</li>
+              <li>Review the split before partners clock out so everyone aligns.</li>
             </ul>
           </div>
           {distributionData && (
@@ -216,9 +234,11 @@ export default function Home() {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-2 rounded-3xl border border-border/50 bg-surface px-4 py-4 text-left">
-      <span className="text-xs font-medium uppercase tracking-[0.32em] text-text-muted">{label}</span>
-      <span className="text-2xl font-semibold tracking-tight text-text-default">{value}</span>
+    <div className="flex flex-col gap-2 rounded-[1.5rem] border border-border/60 bg-surface px-5 py-5 text-left">
+      <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">{label}</span>
+      <span className="text-2xl font-semibold tracking-tight text-text-default md:text-[1.8rem]">
+        {value}
+      </span>
     </div>
   );
 }

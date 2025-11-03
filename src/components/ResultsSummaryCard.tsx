@@ -29,29 +29,23 @@ export default function ResultsSummaryCard({
   );
 
   return (
-    <section className="card-base card-elevated flex flex-col gap-8 rounded-3xl px-6 py-7 md:px-8">
-      <header className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <span className="text-xs uppercase tracking-[0.32em] text-text-muted">
-            Distribution summary
-          </span>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xl font-semibold tracking-tight text-text-default md:text-2xl">
-              Snapshot for this payout
-            </h3>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.28em] text-text-muted">
-              <CalendarDays className="h-3.5 w-3.5" />
-              Distribution date
-            </div>
+    <section className="card-base card-elevated flex flex-col gap-8 rounded-[1.5rem] px-6 py-8 md:px-8">
+      <header className="flex flex-col gap-5">
+        <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
+          Distribution summary
+        </span>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-xl font-semibold tracking-tight text-text-default md:text-[1.65rem]">
+            This split at a glance
+          </h3>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.28em] text-text-muted">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {currentDate}
           </div>
-        </div>
-
-        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-surface-subtle/60 px-4 py-2 text-sm font-medium text-text-default">
-          {currentDate}
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <SummaryMetric
           label="Total hours"
           value={totalHours.toFixed(2)}
@@ -69,13 +63,13 @@ export default function ResultsSummaryCard({
         />
       </div>
 
-      <section className="rounded-3xl border border-border/60 bg-surface px-5 py-5">
+      <section className="rounded-[1.35rem] border border-border/60 bg-surface px-5 py-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h4 className="text-sm font-semibold uppercase tracking-[0.24em] text-text-muted">
+            <h4 className="text-xs font-semibold uppercase tracking-[0.26em] text-text-muted">
               Calculation details
             </h4>
-            <span className="rounded-full bg-surface-subtle/80 px-3 py-1 text-xs font-medium text-text-muted">
+            <span className="rounded-full bg-surface-subtle/70 px-3 py-1 text-[11px] font-medium text-text-muted">
               Formula
             </span>
           </div>
@@ -94,18 +88,18 @@ export default function ResultsSummaryCard({
         </div>
       </section>
 
-      <section className="rounded-3xl border border-border/60 bg-surface px-5 py-5">
+      <section className="rounded-[1.35rem] border border-border/60 bg-surface px-5 py-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-[0.32em] text-text-muted">
+              <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
                 Cash Prep
               </span>
               <h4 className="text-base font-semibold tracking-tight text-text-default">
                 Bills Required for This Split
               </h4>
             </div>
-            <span className="rounded-full bg-brand-forest/15 px-3 py-1 text-sm font-semibold text-brand-forest">
+            <span className="rounded-full bg-brand-forest/12 px-4 py-1.5 text-sm font-semibold text-brand-forest">
               {formatCurrency(totalAmount)}
             </span>
           </div>
@@ -143,9 +137,9 @@ function SummaryMetric({
   tone: SummaryMetricTone;
 }) {
   const toneClasses: Record<SummaryMetricTone, string> = {
-    hours: "bg-brand-sky/20 border-brand-sky/30 text-brand-forest",
-    rate: "bg-brand-latte/20 border-brand-latte/30 text-brand-pine",
-    distributed: "bg-destructive/15 border-destructive/30 text-destructive",
+    hours: "bg-brand-sky/25 border-brand-sky/40 text-brand-forest",
+    rate: "bg-brand-latte/25 border-brand-latte/40 text-brand-pine",
+    distributed: "bg-destructive/12 border-destructive/20 text-destructive",
   };
 
   return (

@@ -189,7 +189,7 @@ export default function FileDropzone() {
   return (
     <div className="space-y-3">
       <div
-        className={`group relative flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-border/70 bg-surface px-6 py-9 text-center transition-colors duration-300 ${
+        className={`group relative flex flex-col items-center justify-center gap-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/70 px-6 py-10 text-center shadow-sm shadow-brand-pine/5 transition-colors duration-300 ${
           state === DropzoneState.DRAGGING
             ? "border-brand-forest/70"
             : state === DropzoneState.PROCESSING
@@ -213,16 +213,16 @@ export default function FileDropzone() {
           }
         }}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/60">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-surface">
           {renderStateIcon()}
         </div>
         <div className="flex flex-col items-center gap-1">
           <p className="text-sm font-semibold text-text-default">{stateLabel}</p>
           <p className="text-xs text-text-muted">
-            JPEG or PNG screenshots from the Partner Hub export work best.
+            JPEG or PNG captures from the Partner Hub report keep things clear.
           </p>
         </div>
-        <div className="rounded-full border border-border/60 px-4 py-1 text-xs font-medium text-text-muted">
+        <div className="rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted">
           Browse files
         </div>
         <input

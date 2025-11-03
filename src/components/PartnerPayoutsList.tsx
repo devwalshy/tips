@@ -15,12 +15,12 @@ export default function PartnerPayoutsList({
   }
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.32em] text-text-muted">
+        <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
           Partner payouts
         </span>
-        <h3 className="text-lg font-semibold tracking-tight text-text-default md:text-xl">
+        <h3 className="text-xl font-semibold tracking-tight text-text-default md:text-[1.55rem]">
           Individual distributions
         </h3>
       </header>
