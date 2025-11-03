@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   FileText,
+  Link as LinkIcon,
 } from "lucide-react";
 
 enum DropzoneState {
@@ -21,6 +22,8 @@ export default function FileDropzone() {
   const [state, setState] = useState<DropzoneState>(DropzoneState.IDLE);
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
@@ -48,6 +51,58 @@ export default function FileDropzone() {
   ) => {
     if (event.target.files?.length) {
       await processFile(event.target.files[0]);
+    }
+  };
+
+  const processImageFromUrl = async (url: string) => {
+    if (!url.trim()) {
+      toast({
+        title: "No URL provided",
+        description: "Please enter a valid image URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setState(DropzoneState.PROCESSING);
+    setFileName(url);
+    setErrorMessage(null);
+
+    try {
+      // Fetch the image from URL
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch image from URL");
+      }
+
+      const blob = await response.blob();
+      if (!blob.type.startsWith("image/")) {
+        toast({
+          title: "Invalid image",
+          description: "The URL does not point to a valid image.",
+          variant: "destructive",
+        });
+        setState(DropzoneState.ERROR);
+        return;
+      }
+
+      // Convert blob to file
+      const file = new File([blob], "url-image.jpg", { type: blob.type });
+      await processFile(file);
+    } catch (error) {
+      console.error(error);
+      const errorMsg = error instanceof Error ? error.message : "Failed to load image from URL";
+      setErrorMessage(errorMsg);
+      setState(DropzoneState.ERROR);
+      toast({
+        title: "URL loading failed",
+        description: errorMsg,
+        variant: "destructive",
+      });
+
+      setTimeout(() => {
+        setState(DropzoneState.IDLE);
+      }, 4000);
     }
   };
 
@@ -188,6 +243,52 @@ export default function FileDropzone() {
 
   return (
     <div className="space-y-3">
+      {showUrlInput && (
+        <div className="rounded-[1.5rem] border border-border/70 bg-surface/70 p-4">
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-medium text-text-default">
+              Enter image URL
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="flex-1 rounded-xl border border-border/60 bg-background px-4 py-2 text-sm text-text-default placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-forest"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    processImageFromUrl(imageUrl);
+                    setShowUrlInput(false);
+                    setImageUrl("");
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  processImageFromUrl(imageUrl);
+                  setShowUrlInput(false);
+                  setImageUrl("");
+                }}
+                className="rounded-xl border border-brand-forest bg-brand-forest px-4 py-2 text-sm font-medium text-white hover:bg-brand-pine"
+              >
+                Load
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUrlInput(false);
+                  setImageUrl("");
+                }}
+                className="rounded-xl border border-border/60 px-4 py-2 text-sm font-medium text-text-muted hover:text-text-default"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`group relative flex flex-col items-center justify-center gap-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/70 px-6 py-10 text-center shadow-sm shadow-brand-pine/5 transition-colors duration-300 ${
           state === DropzoneState.DRAGGING
@@ -222,8 +323,21 @@ export default function FileDropzone() {
             JPEG or PNG captures from the Partner Hub report keep things clear.
           </p>
         </div>
-        <div className="rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted">
-          Browse files
+        <div className="flex gap-2">
+          <div className="rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted">
+            Browse files
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowUrlInput(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted transition-colors hover:border-brand-forest hover:text-brand-forest"
+          >
+            <LinkIcon className="h-3 w-3" />
+            URL
+          </button>
         </div>
         <input
           ref={fileInputRef}

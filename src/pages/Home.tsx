@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import FileDropzone from "@/components/FileDropzone";
 import ResultsSummaryCard from "@/components/ResultsSummaryCard";
 import PartnerPayoutsList from "@/components/PartnerPayoutsList";
+import ManualEntryModal from "@/components/ManualEntryModal";
 import { useTipContext } from "@/context/TipContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/utils/queryClient";
@@ -12,12 +13,14 @@ import BillBreakdownForm, {
   createInitialBillCounts,
   getBillTotal,
 } from "@/components/BillBreakdownForm";
+import { Edit3 } from "lucide-react";
 
 export default function Home() {
   const [billCounts, setBillCounts] = useState<BillCounts>(() =>
     createInitialBillCounts(),
   );
   const [isCalculating, setIsCalculating] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const { toast } = useToast();
   const { partnerHours, distributionData, setDistributionData } =
     useTipContext();
@@ -161,6 +164,15 @@ export default function Home() {
 
           <FileDropzone />
 
+          <button
+            type="button"
+            onClick={() => setShowManualEntry(true)}
+            className="flex items-center justify-center gap-2 rounded-[1.5rem] border border-border/60 bg-surface px-5 py-3 text-sm font-medium text-text-default transition-colors hover:border-brand-forest hover:bg-brand-forest/5"
+          >
+            <Edit3 className="h-4 w-4" />
+            Enter partner hours manually
+          </button>
+
           <div className="h-px w-full bg-border/60" aria-hidden="true" />
 
           <section className="space-y-6">
@@ -228,6 +240,11 @@ export default function Home() {
           <PartnerPayoutsList distributionData={distributionData} />
         </motion.section>
       )}
+
+      <ManualEntryModal
+        isOpen={showManualEntry}
+        onClose={() => setShowManualEntry(false)}
+      />
     </div>
   );
 }

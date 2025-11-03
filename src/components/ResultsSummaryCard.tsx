@@ -1,6 +1,7 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Copy, Download } from "lucide-react";
 import { DistributionData } from "@shared/schema";
 import { cn, formatCurrency, formatDate } from "@/utils/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type ResultsSummaryCardProps = {
   distribution: DistributionData;
@@ -11,6 +12,7 @@ export default function ResultsSummaryCard({
 }: ResultsSummaryCardProps) {
   const { totalHours, hourlyRate, totalAmount, partnerPayouts } = distribution;
   const currentDate = formatDate(new Date());
+  const { toast } = useToast();
 
   const billsNeeded = partnerPayouts.reduce<Record<number, number>>(
     (accumulator, partner) => {
@@ -28,19 +30,117 @@ export default function ResultsSummaryCard({
       Number(denominationB) - Number(denominationA),
   );
 
+  const exportToText = () => {
+    let text = `TIP DISTRIBUTION SUMMARY\n`;
+    text += `Date: ${currentDate}\n`;
+    text += `\n`;
+    text += `Total Hours: ${totalHours.toFixed(2)}\n`;
+    text += `Hourly Rate: $${hourlyRate.toFixed(2)}\n`;
+    text += `Total Amount: ${formatCurrency(totalAmount)}\n`;
+    text += `\n`;
+    text += `PARTNER PAYOUTS:\n`;
+    text += `${'='.repeat(60)}\n`;
+    
+    partnerPayouts.forEach((partner) => {
+      text += `\n${partner.name}\n`;
+      text += `  Hours: ${partner.hours}\n`;
+      text += `  Payout: ${formatCurrency(partner.rounded)}\n`;
+      text += `  Bills: `;
+      const bills = [...partner.billBreakdown]
+        .sort((a, b) => b.denomination - a.denomination)
+        .map((bill) => `${bill.quantity} × $${bill.denomination}`)
+        .join(', ');
+      text += bills + '\n';
+    });
+    
+    text += `\n${'='.repeat(60)}\n`;
+    text += `\nBILLS NEEDED TOTAL:\n`;
+    sortedBills.forEach(([denomination, quantity]) => {
+      text += `  ${quantity} × $${Number(denomination)}\n`;
+    });
+    
+    return text;
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      const text = exportToText();
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard",
+        description: "Distribution summary ready to share.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Copy failed",
+        description: "Could not copy to clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadText = () => {
+    try {
+      const text = exportToText();
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tip-distribution-${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download started",
+        description: "Distribution summary file is downloading.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Download failed",
+        description: "Could not download file.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <section className="card-base card-elevated flex flex-col gap-8 rounded-[1.5rem] px-6 py-8 md:px-8">
       <header className="flex flex-col gap-5">
         <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
           Distribution summary
         </span>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-xl font-semibold tracking-tight text-text-default md:text-[1.65rem]">
-            This split at a glance
-          </h3>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.28em] text-text-muted">
-            <CalendarDays className="h-3.5 w-3.5" />
-            {currentDate}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-xl font-semibold tracking-tight text-text-default md:text-[1.65rem]">
+              This split at a glance
+            </h3>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.28em] text-text-muted">
+              <CalendarDays className="h-3.5 w-3.5" />
+              {currentDate}
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleCopyToClipboard}
+              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-2 text-xs font-medium text-text-default transition-colors hover:border-brand-forest hover:bg-brand-forest/5"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy to clipboard
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadText}
+              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-2 text-xs font-medium text-text-default transition-colors hover:border-brand-forest hover:bg-brand-forest/5"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download as text
+            </button>
           </div>
         </div>
       </header>
