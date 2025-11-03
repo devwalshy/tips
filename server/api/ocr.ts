@@ -58,17 +58,16 @@ export async function analyzeImage(imageBuffer: Buffer, engine?: OCREngine): Pro
  */
 export async function extractTextOnly(imageBuffer: Buffer): Promise<{ text: string | null; error?: string }> {
   try {
-    const processedBuffer = await preprocessImage(imageBuffer);
-    const text = await performOCR(processedBuffer);
+    const result = await analyzeImageWithService(imageBuffer);
     
-    if (!text || text.trim().length === 0) {
+    if (!result.text || result.text.trim().length === 0) {
       return {
         text: null,
         error: 'No text could be extracted from the image',
       };
     }
     
-    return { text };
+    return { text: result.text };
   } catch (error) {
     console.error('Text extraction error:', error);
     return {

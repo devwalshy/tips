@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import FileDropzone from "@/components/FileDropzone";
 import ResultsSummaryCard from "@/components/ResultsSummaryCard";
 import PartnerPayoutsList from "@/components/PartnerPayoutsList";
+import ManualEntryModal from "@/components/ManualEntryModal";
 import { useTipContext } from "@/context/TipContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/utils/queryClient";
 import { calculateHourlyRate, formatCurrency } from "@/utils/utils";
+import { Edit } from "lucide-react";
 import BillBreakdownForm, {
   BillCounts,
   createInitialBillCounts,
@@ -18,6 +20,7 @@ export default function Home() {
     createInitialBillCounts(),
   );
   const [isCalculating, setIsCalculating] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const { toast } = useToast();
   const { partnerHours, distributionData, setDistributionData } =
     useTipContext();
@@ -161,6 +164,15 @@ export default function Home() {
 
           <FileDropzone />
 
+          <button
+            type="button"
+            onClick={() => setShowManualEntry(true)}
+            className="flex items-center justify-center gap-2 rounded-full border border-border/60 bg-surface px-4 py-2 text-sm font-medium text-text-default transition hover:border-brand-forest hover:bg-surface-subtle"
+          >
+            <Edit className="h-4 w-4" />
+            Enter hours manually
+          </button>
+
           <div className="h-px w-full bg-border/60" aria-hidden="true" />
 
           <section className="space-y-6">
@@ -228,6 +240,11 @@ export default function Home() {
           <PartnerPayoutsList distributionData={distributionData} />
         </motion.section>
       )}
+
+      <ManualEntryModal
+        isOpen={showManualEntry}
+        onClose={() => setShowManualEntry(false)}
+      />
     </div>
   );
 }

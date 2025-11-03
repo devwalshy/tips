@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   FileText,
+  Link as LinkIcon,
 } from "lucide-react";
 
 enum DropzoneState {
@@ -21,6 +22,8 @@ export default function FileDropzone() {
   const [state, setState] = useState<DropzoneState>(DropzoneState.IDLE);
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
@@ -51,6 +54,64 @@ export default function FileDropzone() {
     }
   };
 
+  const processImageUrl = async () => {
+    if (!imageUrl.trim()) {
+      toast({
+        title: "No URL provided",
+        description: "Please enter a valid image URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setState(DropzoneState.PROCESSING);
+    setFileName(imageUrl);
+    setErrorMessage(null);
+    setShowUrlInput(false);
+
+    try {
+      // Fetch the image from URL
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error("Failed to fetch image from URL");
+      }
+
+      const blob = await imageResponse.blob();
+      const file = new File([blob], "image-from-url.jpg", { type: blob.type });
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("/api/ocr", {
+        method: "POST",
+        body: formData,
+      });
+
+      await handleOCRResponse(response);
+    } catch (error: unknown) {
+      console.error(error);
+      const messageFromError =
+        error instanceof Error && error.message ? error.message : null;
+      const errorMsg =
+        messageFromError ||
+        errorMessage ||
+        "Failed to process image from URL. Please verify the URL and try again.";
+
+      setErrorMessage(errorMsg);
+      setState(DropzoneState.ERROR);
+
+      toast({
+        title: "URL processing failed",
+        description: errorMsg,
+        variant: "destructive",
+      });
+
+      setTimeout(() => {
+        setState(DropzoneState.IDLE);
+      }, 4000);
+    }
+  };
+
   const processFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast({
@@ -73,6 +134,33 @@ export default function FileDropzone() {
         method: "POST",
         body: formData,
       });
+
+      await handleOCRResponse(response);
+    } catch (error: unknown) {
+      console.error(error);
+      const messageFromError =
+        error instanceof Error && error.message ? error.message : null;
+      const errorMsg =
+        messageFromError ||
+        errorMessage ||
+        "Failed to extract partner information. Please retry.";
+
+      setErrorMessage(errorMsg);
+      setState(DropzoneState.ERROR);
+
+      toast({
+        title: "Processing failed",
+        description: errorMsg,
+        variant: "destructive",
+      });
+
+      setTimeout(() => {
+        setState(DropzoneState.IDLE);
+      }, 4000);
+    }
+  };
+
+  const handleOCRResponse = async (response: Response) => {
 
       const clonedResponse = response.clone();
       let result: any = null;
@@ -111,55 +199,33 @@ export default function FileDropzone() {
         throw new Error(errorMsg);
       }
 
-      if (result.extractedText) {
-        setExtractedText(result.extractedText);
-      }
+    if (result.extractedText) {
+      setExtractedText(result.extractedText);
+    }
 
-      if (result.partnerHours && result.partnerHours.length > 0) {
-        setPartnerHours(result.partnerHours);
-        setState(DropzoneState.SUCCESS);
-
-        setTimeout(() => {
-          setState(DropzoneState.IDLE);
-        }, 2500);
-
-        toast({
-          title: "Report synced",
-          description: `Captured ${result.partnerHours.length} partners from this upload.`,
-        });
-      } else {
-        const fallbackMessage =
-          "We read the file but could not identify partner hours. Try a sharper photo.";
-        setErrorMessage(fallbackMessage);
-        setState(DropzoneState.ERROR);
-
-        toast({
-          title: "No partner data",
-          description: fallbackMessage,
-          variant: "destructive",
-        });
-      }
-    } catch (error: unknown) {
-      console.error(error);
-      const messageFromError =
-        error instanceof Error && error.message ? error.message : null;
-      const errorMsg =
-        messageFromError ||
-        errorMessage ||
-        "Failed to extract partner information. Please retry.";
-
-      setErrorMessage(errorMsg);
-      setState(DropzoneState.ERROR);
-
-      toast({
-        title: "Processing failed",
-        description: errorMsg,
-        variant: "destructive",
-      });
+    if (result.partnerHours && result.partnerHours.length > 0) {
+      setPartnerHours(result.partnerHours);
+      setState(DropzoneState.SUCCESS);
 
       setTimeout(() => {
         setState(DropzoneState.IDLE);
-      }, 4000);
+      }, 2500);
+
+      toast({
+        title: "Report synced",
+        description: `Captured ${result.partnerHours.length} partners from this upload.`,
+      });
+    } else {
+      const fallbackMessage =
+        "We read the file but could not identify partner hours. Try a sharper photo.";
+      setErrorMessage(fallbackMessage);
+      setState(DropzoneState.ERROR);
+
+      toast({
+        title: "No partner data",
+        description: fallbackMessage,
+        variant: "destructive",
+      });
     }
   };
 
@@ -188,6 +254,46 @@ export default function FileDropzone() {
 
   return (
     <div className="space-y-3">
+      {showUrlInput && (
+        <div className="rounded-[1.5rem] border border-border/70 bg-surface p-5">
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-semibold text-text-default">
+              Enter Image URL
+            </label>
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://example.com/partner-report.jpg"
+              className="rounded-full border border-border/60 bg-background px-4 py-2 text-sm text-text-default outline-none transition focus:border-brand-forest focus:ring-2 focus:ring-brand-forest/30"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  processImageUrl();
+                }
+              }}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={processImageUrl}
+                className="brand-button flex-1"
+              >
+                Process URL
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUrlInput(false);
+                  setImageUrl("");
+                }}
+                className="rounded-full border border-border/60 bg-surface px-4 py-2 text-sm font-medium text-text-muted transition hover:bg-surface-subtle"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`group relative flex flex-col items-center justify-center gap-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/70 px-6 py-10 text-center shadow-sm shadow-brand-pine/5 transition-colors duration-300 ${
           state === DropzoneState.DRAGGING
@@ -222,8 +328,21 @@ export default function FileDropzone() {
             JPEG or PNG captures from the Partner Hub report keep things clear.
           </p>
         </div>
-        <div className="rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted">
-          Browse files
+        <div className="flex gap-2">
+          <div className="rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted">
+            Browse files
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowUrlInput(true);
+            }}
+            className="flex items-center gap-1 rounded-full border border-border/60 bg-surface px-4 py-1 text-xs font-medium text-text-muted transition hover:border-brand-forest hover:text-brand-forest"
+          >
+            <LinkIcon className="h-3 w-3" />
+            Use URL
+          </button>
         </div>
         <input
           ref={fileInputRef}

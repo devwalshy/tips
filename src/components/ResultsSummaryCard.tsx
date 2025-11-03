@@ -1,6 +1,8 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Copy, Download } from "lucide-react";
 import { DistributionData } from "@shared/schema";
 import { cn, formatCurrency, formatDate } from "@/utils/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 type ResultsSummaryCardProps = {
   distribution: DistributionData;
@@ -11,6 +13,8 @@ export default function ResultsSummaryCard({
 }: ResultsSummaryCardProps) {
   const { totalHours, hourlyRate, totalAmount, partnerPayouts } = distribution;
   const currentDate = formatDate(new Date());
+  const { toast } = useToast();
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const billsNeeded = partnerPayouts.reduce<Record<number, number>>(
     (accumulator, partner) => {
@@ -28,12 +32,109 @@ export default function ResultsSummaryCard({
       Number(denominationB) - Number(denominationA),
   );
 
+  const exportAsText = () => {
+    const lines = [
+      `TIP DISTRIBUTION - ${currentDate}`,
+      `${'='.repeat(60)}`,
+      ``,
+      `SUMMARY`,
+      `Total Amount: ${formatCurrency(totalAmount)}`,
+      `Total Hours: ${totalHours.toFixed(2)}`,
+      `Hourly Rate: $${hourlyRate.toFixed(2)}`,
+      ``,
+      `PARTNER PAYOUTS`,
+      `${'='.repeat(60)}`,
+    ];
+
+    partnerPayouts.forEach((partner) => {
+      lines.push(``);
+      lines.push(`${partner.name}`);
+      lines.push(`  Hours: ${partner.hours}`);
+      lines.push(`  Payout: ${formatCurrency(partner.rounded)}`);
+      lines.push(`  Bills: ${partner.billBreakdown.map(b => `${b.quantity}×$${b.denomination}`).join(', ')}`);
+    });
+
+    lines.push(``);
+    lines.push(`TOTAL BILLS NEEDED`);
+    lines.push(`${'='.repeat(60)}`);
+    sortedBills.forEach(([denom, qty]) => {
+      lines.push(`  ${qty} × $${denom}`);
+    });
+
+    const text = lines.join('\n');
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: "Distribution data copied as formatted text.",
+    });
+    setShowExportMenu(false);
+  };
+
+  const exportAsTable = () => {
+    const rows = [
+      ['Partner', 'Hours', 'Payout', 'Bills'].join('\t'),
+      partnerPayouts.map(p => 
+        [
+          p.name,
+          p.hours.toString(),
+          formatCurrency(p.rounded),
+          p.billBreakdown.map(b => `${b.quantity}×$${b.denomination}`).join(', ')
+        ].join('\t')
+      ).join('\n'),
+      '',
+      ['Summary', '', '', ''].join('\t'),
+      ['Total Amount', '', formatCurrency(totalAmount), ''].join('\t'),
+      ['Total Hours', '', totalHours.toFixed(2), ''].join('\t'),
+      ['Hourly Rate', '', `$${hourlyRate.toFixed(2)}`, ''].join('\t'),
+    ];
+
+    const table = rows.join('\n');
+    navigator.clipboard.writeText(table);
+    toast({
+      title: "Copied to clipboard",
+      description: "Distribution data copied as table (paste into Excel/Sheets).",
+    });
+    setShowExportMenu(false);
+  };
+
   return (
     <section className="card-base card-elevated flex flex-col gap-8 rounded-[1.5rem] px-6 py-8 md:px-8">
       <header className="flex flex-col gap-5">
-        <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
-          Distribution summary
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] uppercase tracking-[0.3em] text-text-muted">
+            Distribution summary
+          </span>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="flex items-center gap-2 rounded-full border border-border/60 bg-surface px-3 py-1.5 text-xs font-medium text-text-default transition hover:border-brand-forest hover:text-brand-forest"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </button>
+            {showExportMenu && (
+              <div className="absolute right-0 top-full mt-2 z-10 flex flex-col gap-1 rounded-2xl border border-border/60 bg-surface p-2 shadow-lg">
+                <button
+                  type="button"
+                  onClick={exportAsText}
+                  className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm text-text-default transition hover:bg-surface-subtle"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy as Text
+                </button>
+                <button
+                  type="button"
+                  onClick={exportAsTable}
+                  className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm text-text-default transition hover:bg-surface-subtle"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy as Table
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-xl font-semibold tracking-tight text-text-default md:text-[1.65rem]">
             This split at a glance
