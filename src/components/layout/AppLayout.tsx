@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { PropsWithChildren } from "react";
-import { Moon, SunMedium } from "lucide-react";
+import { PropsWithChildren, useState } from "react";
+import { Moon, SunMedium, History } from "lucide-react";
 import { useAppTheme } from "@/components/providers/AppThemeProvider";
+import HistoryModal from "@/components/HistoryModal";
 
 export function AppLayout({ children }: PropsWithChildren) {
   const { theme, setTheme } = useAppTheme();
+  const [showHistory, setShowHistory] = useState(false);
   const isDark = theme === "partner-dark";
 
   return (
@@ -20,18 +22,29 @@ export function AppLayout({ children }: PropsWithChildren) {
             </h1>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setTheme(isDark ? "partner-light" : "partner-dark")}
-            className="glass-panel flex h-11 w-11 items-center justify-center transition-colors hover:bg-surface"
-            aria-label="Toggle theme"
-          >
-            {isDark ? (
-              <SunMedium className="h-5 w-5 text-brand-cream" />
-            ) : (
-              <Moon className="h-5 w-5 text-brand-pine" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowHistory(true)}
+              className="glass-panel flex h-11 w-11 items-center justify-center transition-colors hover:bg-surface"
+              aria-label="View history"
+            >
+              <History className="h-5 w-5 text-brand-pine dark:text-brand-cream" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTheme(isDark ? "partner-light" : "partner-dark")}
+              className="glass-panel flex h-11 w-11 items-center justify-center transition-colors hover:bg-surface"
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <SunMedium className="h-5 w-5 text-brand-cream" />
+              ) : (
+                <Moon className="h-5 w-5 text-brand-pine" />
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -45,6 +58,11 @@ export function AppLayout({ children }: PropsWithChildren) {
           {children}
         </motion.div>
       </main>
+
+      <HistoryModal
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+      />
     </div>
   );
 }
