@@ -1,6 +1,6 @@
 /**
- * Test script for Azure Document Intelligence OCR
- * Tests both Azure and Tesseract engines
+ * Test script for Mindee OCR
+ * Tests both Mindee and Tesseract engines
  */
 
 import 'dotenv/config';
@@ -12,23 +12,16 @@ import { analyzeImageWithService } from './lib/ocrService';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function testAzureOCR() {
-  console.log('=== Testing Azure Document Intelligence OCR ===\n');
-  
-  // Check Azure configuration (supports both old and new variables)
-  const hasAzure = !!((process.env.AZURE_DI_KEY && process.env.AZURE_DI_ENDPOINT) || 
-                      (process.env.AZURE_CV_KEY && process.env.AZURE_CV_ENDPOINT));
-  const usingDI = !!(process.env.AZURE_DI_KEY && process.env.AZURE_DI_ENDPOINT);
-  
-  console.log(`Azure configured: ${hasAzure ? '✅ YES' : '❌ NO'}`);
-  if (hasAzure) {
-    console.log(`Using: ${usingDI ? 'Document Intelligence (recommended)' : 'Computer Vision (legacy)'}`);
-  }
-  
-  if (!hasAzure) {
-    console.log('\n⚠️  Azure not configured.');
-    console.log('Set AZURE_DI_KEY and AZURE_DI_ENDPOINT to test Azure Document Intelligence.');
-    console.log('See AZURE_DOCUMENT_INTELLIGENCE.md for setup instructions.\n');
+async function testMindeeOCR() {
+  console.log('=== Testing Mindee OCR ===\n');
+
+  const hasMindee = Boolean(process.env.MINDEE_API_KEY);
+
+  console.log(`Mindee configured: ${hasMindee ? '✅ YES' : '❌ NO'}`);
+  if (!hasMindee) {
+    console.log('\n⚠️  Mindee API key not configured.');
+    console.log('Set MINDEE_API_KEY to test Mindee OCR.');
+    console.log('Refer to the Mindee OCR setup guide for details.\n');
   }
   
   const assetsDir = path.join(__dirname, '..', 'attached_assets');
@@ -95,7 +88,7 @@ async function testAzureOCR() {
 }
 
 // Run the test
-testAzureOCR().catch(error => {
+testMindeeOCR().catch(error => {
   console.error('Test script error:', error);
   process.exit(1);
 });

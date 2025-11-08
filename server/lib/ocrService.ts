@@ -1,13 +1,13 @@
 /**
  * OCR Service - Abstraction layer for multiple OCR engines
- * Supports: Azure AI Document Intelligence, Tesseract, and more
+ * Supports: Mindee OCR (primary), Tesseract (fallback)
  */
 
-import { analyzeImageWithAzure } from '../api/azureOcr';
+import { analyzeImageWithMindee } from '../api/mindeeOcr';
 import { analyzeImage as analyzeWithTesseract } from '../api/ocr';
-import { parseStarbucksReport, validateParseResult } from './tableParser';
+import { parseStarbucksReport } from './tableParser';
 
-export type OCREngine = 'azure' | 'tesseract' | 'auto';
+export type OCREngine = 'mindee' | 'tesseract' | 'auto';
 
 interface OCRServiceResult {
   text: string | null;
@@ -27,19 +27,29 @@ export async function analyzeImageWithService(
   imageBuffer: Buffer,
   preferredEngine?: OCREngine
 ): Promise<OCRServiceResult> {
+
+  const envEngine = (process.env.OCR_ENGINE as OCREngine | 'azure' | 'deepseek' | undefined) || 'auto';
+  const selectedEngine = preferredEngine || envEngine;
   
-  const engine = preferredEngine || (process.env.OCR_ENGINE as OCREngine) || 'auto';
-  
+  // Handle deprecated engine names
+  let engine: OCREngine;
+  if (selectedEngine === 'azure' || selectedEngine === 'deepseek') {
+    console.warn(`OCR Service: OCR_ENGINE=${selectedEngine} is deprecated. Using mindee instead.`);
+    engine = 'mindee';
+  } else {
+    engine = selectedEngine as OCREngine;
+  }
+
   console.log(`OCR Service: Using engine strategy '${engine}'`);
   
-  // Auto mode: Try Azure first, fallback to Tesseract
+  // Auto mode: Try Mindee first, fallback to Tesseract
   if (engine === 'auto') {
     return await tryAutoMode(imageBuffer);
   }
-  
-  // Azure mode: Try Azure only
-  if (engine === 'azure') {
-    return await tryAzure(imageBuffer);
+
+  // Mindee mode: Try Mindee only
+  if (engine === 'mindee') {
+    return await tryMindee(imageBuffer);
   }
   
   // Tesseract mode: Try Tesseract only
@@ -52,91 +62,89 @@ export async function analyzeImageWithService(
 }
 
 /**
- * Auto mode: Try Azure first, fallback to Tesseract
+ * Auto mode: Try Mindee first, fallback to Tesseract
  */
 async function tryAutoMode(imageBuffer: Buffer): Promise<OCRServiceResult> {
-  console.log('Auto mode: Trying Azure first...');
-  
-  // Try Azure
-  const azureResult = await tryAzure(imageBuffer);
-  
-    // If Azure succeeded with reasonable confidence, use it
-    // Lower threshold for Azure since it's generally more accurate
-    if (azureResult.partnerData.length > 0 && azureResult.confidence >= 15) {
-      console.log(`Auto mode: Azure succeeded with confidence ${azureResult.confidence}%`);
-      return azureResult;
-    }
-  
+  console.log('Auto mode: Trying Mindee first...');
+
+  // Try Mindee
+  const mindeeResult = await tryMindee(imageBuffer);
+
+  // If Mindee succeeded with reasonable confidence, use it
+  if (mindeeResult.partnerData.length > 0 && mindeeResult.confidence >= 15) {
+    console.log(`Auto mode: Mindee succeeded with confidence ${mindeeResult.confidence}%`);
+    return mindeeResult;
+  }
+
   // Otherwise, try Tesseract as fallback
-  console.log('Auto mode: Azure confidence low or failed, trying Tesseract...');
+  console.log('Auto mode: Mindee confidence low or failed, trying Tesseract...');
   const tesseractResult = await tryTesseract(imageBuffer);
-  
+
   // Return whichever has better results
-  if (tesseractResult.confidence > azureResult.confidence) {
+  if (tesseractResult.confidence > mindeeResult.confidence) {
     console.log(`Auto mode: Tesseract won with confidence ${tesseractResult.confidence}%`);
     return tesseractResult;
   }
-  
-  console.log(`Auto mode: Using Azure result with confidence ${azureResult.confidence}%`);
-  return azureResult;
+
+  console.log(`Auto mode: Using Mindee result with confidence ${mindeeResult.confidence}%`);
+  return mindeeResult;
 }
 
 /**
- * Try Azure AI Document Intelligence OCR
+ * Try Mindee OCR
  */
-async function tryAzure(imageBuffer: Buffer): Promise<OCRServiceResult> {
+async function tryMindee(imageBuffer: Buffer): Promise<OCRServiceResult> {
   try {
-    const result = await analyzeImageWithAzure(imageBuffer);
-    
+    const result = await analyzeImageWithMindee(imageBuffer);
+
     if (!result.text || result.error) {
       return {
         text: null,
         partnerData: [],
         confidence: 0,
-        engine: 'azure',
-        error: result.error || 'Azure OCR failed'
+        engine: 'mindee',
+        error: result.error || 'Mindee OCR failed'
       };
     }
-    
+
     // Parse the extracted text
     console.log(`\n${'='.repeat(80)}`);
-    console.log(`AZURE OCR TEXT (${result.text.length} characters):`);
+    console.log(`MINDEE OCR TEXT (${result.text.length} characters):`);
     console.log('='.repeat(80));
     console.log(result.text);
     console.log('='.repeat(80));
-    
+
     const parseResult = parseStarbucksReport(result.text);
-    
-    console.log(`Azure parser found ${parseResult.partners.length} partners with ${parseResult.confidence}% confidence`);
-    
-    // For Azure Document Intelligence, accept results even if validation is borderline
-    // Document Intelligence is specifically designed for tables and has 95-98% accuracy
+
+    console.log(`Mindee parser found ${parseResult.partners.length} partners with ${parseResult.confidence}% confidence`);
+
+    // Mindee OCR provides high accuracy document extraction
     if (parseResult.partners.length > 0) {
-      console.log(`Accepting Azure result with ${parseResult.partners.length} partners`);
+      console.log(`Accepting Mindee result with ${parseResult.partners.length} partners`);
       return {
         text: result.text,
         partnerData: parseResult.partners,
         confidence: parseResult.confidence,
-        engine: 'azure'
+        engine: 'mindee'
       };
     }
-    
+
     return {
       text: result.text,
       partnerData: [],
       confidence: parseResult.confidence,
-      engine: 'azure',
-      error: 'No partners found in Azure text'
+      engine: 'mindee',
+      error: 'No partners found in Mindee text'
     };
-    
+
   } catch (error) {
-    console.error('Azure OCR error:', error);
+    console.error('Mindee OCR error:', error);
     return {
       text: null,
       partnerData: [],
       confidence: 0,
-      engine: 'azure',
-      error: `Azure exception: ${error instanceof Error ? error.message : 'Unknown'}`
+      engine: 'mindee',
+      error: `Mindee exception: ${error instanceof Error ? error.message : 'Unknown'}`
     };
   }
 }

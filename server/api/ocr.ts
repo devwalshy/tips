@@ -1,9 +1,11 @@
 /**
  * OCR API implementation with multiple engine support
- * Supports: Azure Computer Vision (primary), Tesseract (fallback)
+ * Supports: Mindee OCR (primary), Tesseract (fallback)
  */
 
 import { analyzeImageWithService, OCREngine } from '../lib/ocrService';
+import { preprocessImage } from '../lib/imagePreprocessor';
+import { performOCR } from '../lib/ocrConfig';
 
 interface OCRResult {
   text: string | null;
@@ -58,16 +60,26 @@ export async function analyzeImage(imageBuffer: Buffer, engine?: OCREngine): Pro
  */
 export async function extractTextOnly(imageBuffer: Buffer): Promise<{ text: string | null; error?: string }> {
   try {
+    // Try Mindee first for higher accuracy text extraction
+    const mindeeResult = await analyzeImageWithService(imageBuffer, 'mindee');
+
+    if (mindeeResult.text && mindeeResult.text.trim().length > 0) {
+      return mindeeResult.error
+        ? { text: mindeeResult.text, error: mindeeResult.error }
+        : { text: mindeeResult.text };
+    }
+
+    // Fallback to Tesseract if Mindee failed to return text
     const processedBuffer = await preprocessImage(imageBuffer);
     const text = await performOCR(processedBuffer);
-    
+
     if (!text || text.trim().length === 0) {
       return {
         text: null,
         error: 'No text could be extracted from the image',
       };
     }
-    
+
     return { text };
   } catch (error) {
     console.error('Text extraction error:', error);

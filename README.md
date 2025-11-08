@@ -109,8 +109,8 @@ branch.
    - Publish directory: `dist/public`
 3. **Environment variables** (Site settings → Environment variables)
    - `SESSION_SECRET`
-   - `OCR_ENGINE` (e.g., `auto`, `azure`, or `tesseract`)
-   - Azure keys if using Document Intelligence: `AZURE_DI_KEY`, `AZURE_DI_ENDPOINT`
+   - `OCR_ENGINE` (e.g., `auto`, `mindee`, or `tesseract`)
+   - Mindee OCR API key: `MINDEE_API_KEY`
 4. **SPA routing & caching** are handled in `netlify.toml` (includes `/index.html`
 redirect and long-term asset caching).
 5. **Local smoke test**

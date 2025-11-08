@@ -1,18 +1,18 @@
 /**
- * Debug what Azure is actually extracting
+ * Debug what Mindee is actually extracting
  */
 
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { analyzeImageWithAzure } from './api/azureOcr';
+import { analyzeImageWithMindee } from './api/mindeeOcr';
 import { parseStarbucksReport } from './lib/tableParser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function debugAzure() {
+async function debugMindee() {
   const assetsDir = path.join(__dirname, '..', 'attached_assets');
   const imageFiles = fs.readdirSync(assetsDir)
     .filter(file => /\.(png|jpg|jpeg)$/i.test(file))
@@ -29,14 +29,15 @@ async function debugAzure() {
   console.log(`Testing with: ${imageFiles[0]}\n`);
   console.log('='.repeat(70));
   
-  const result = await analyzeImageWithAzure(imageBuffer);
-  
+  const result = await analyzeImageWithMindee(imageBuffer);
+
   if (result.text) {
-    console.log('AZURE OCR TEXT:');
+    console.log('MINDEE OCR TEXT:');
     console.log('='.repeat(70));
     console.log(result.text);
     console.log('='.repeat(70));
     console.log(`\nLength: ${result.text.length} characters`);
+    console.log(`Confidence: ${result.confidence}%`);
     
     console.log('\n\nPARSING RESULT:');
     console.log('='.repeat(70));
@@ -55,5 +56,5 @@ async function debugAzure() {
   }
 }
 
-debugAzure().catch(console.error);
+debugMindee().catch(console.error);
 
