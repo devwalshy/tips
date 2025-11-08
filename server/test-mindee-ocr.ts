@@ -1,6 +1,6 @@
 /**
- * Test script for Azure Document Intelligence OCR
- * Tests both Azure and Tesseract engines
+ * Test script for Mindee OCR
+ * Tests both Mindee and Tesseract engines
  */
 
 import 'dotenv/config';
@@ -12,23 +12,15 @@ import { analyzeImageWithService } from './lib/ocrService';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function testAzureOCR() {
-  console.log('=== Testing Azure Document Intelligence OCR ===\n');
-  
-  // Check Azure configuration (supports both old and new variables)
-  const hasAzure = !!((process.env.AZURE_DI_KEY && process.env.AZURE_DI_ENDPOINT) || 
-                      (process.env.AZURE_CV_KEY && process.env.AZURE_CV_ENDPOINT));
-  const usingDI = !!(process.env.AZURE_DI_KEY && process.env.AZURE_DI_ENDPOINT);
-  
-  console.log(`Azure configured: ${hasAzure ? '✅ YES' : '❌ NO'}`);
-  if (hasAzure) {
-    console.log(`Using: ${usingDI ? 'Document Intelligence (recommended)' : 'Computer Vision (legacy)'}`);
-  }
-  
-  if (!hasAzure) {
-    console.log('\n⚠️  Azure not configured.');
-    console.log('Set AZURE_DI_KEY and AZURE_DI_ENDPOINT to test Azure Document Intelligence.');
-    console.log('See AZURE_DOCUMENT_INTELLIGENCE.md for setup instructions.\n');
+async function testMindeeOCR() {
+  console.log('=== Testing Mindee OCR ===\n');
+
+  const hasMindee = Boolean(process.env.MINDEE_API_KEY);
+  console.log(`Mindee configured: ${hasMindee ? '✅ YES' : '❌ NO'}`);
+  if (!hasMindee) {
+    console.log('\n⚠️  Mindee API key not configured.');
+    console.log('Set MINDEE_API_KEY (and optionally MINDEE_ENDPOINT) to test Mindee OCR.');
+    console.log('Refer to the Mindee OCR setup guide for details.\n');
   }
   
   const assetsDir = path.join(__dirname, '..', 'attached_assets');
@@ -58,10 +50,13 @@ async function testAzureOCR() {
       const startTime = Date.now();
       const result = await analyzeImageWithService(imageBuffer, 'auto');
       const endTime = Date.now();
-      
+
       console.log(`Processing time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
       console.log(`OCR Engine used: ${result.engine.toUpperCase()}`);
-      
+      if (result.jobId) {
+        console.log(`Mindee Job ID: ${result.jobId}`);
+      }
+
       if (result.error) {
         console.log(`❌ Error: ${result.error}`);
       } else if (result.partnerData && result.partnerData.length > 0) {
@@ -77,6 +72,20 @@ async function testAzureOCR() {
         });
         
         console.log(`\nTotal Hours: ${totalHours.toFixed(2)}`);
+        if (result.fields?.length) {
+          console.log(`\nMindee reported ${result.fields.length} raw fields (showing up to 5):`);
+          result.fields.slice(0, 5).forEach((field, index) => {
+            const record = field as Record<string, unknown>;
+            const name = typeof record.name === 'string' ? record.name : `field_${index + 1}`;
+            const valueCandidate = record.value ?? record.content ?? record.text ?? '';
+            const value = typeof valueCandidate === 'string' ? valueCandidate : JSON.stringify(valueCandidate);
+            const confidence =
+              typeof record.confidence === 'number'
+                ? `${Math.round(record.confidence <= 1 ? record.confidence * 100 : record.confidence)}%`
+                : 'n/a';
+            console.log(`  - ${name}: ${value} (confidence ${confidence})`);
+          });
+        }
       } else {
         console.log('⚠️ No partner data extracted');
       }
@@ -95,7 +104,7 @@ async function testAzureOCR() {
 }
 
 // Run the test
-testAzureOCR().catch(error => {
+testMindeeOCR().catch(error => {
   console.error('Test script error:', error);
   process.exit(1);
 });

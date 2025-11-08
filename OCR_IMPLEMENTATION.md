@@ -2,17 +2,24 @@
 
 ## Overview
 
-This project has been updated to replace Google Gemini AI with **Tesseract OCR** for extracting partner data from Starbucks Tip Distribution Reports. This change ensures:
+This project now uses a hybrid approach for extracting partner data from Starbucks Tip Distribution Reports:
 
-- ✅ **100% Privacy Compliant** - No data sent to external AI services
-- ✅ **No AI Training** - Tesseract doesn't learn from your data
-- ✅ **Completely Free** - No API costs at any scale
-- ✅ **Scalable** - Runs on your own infrastructure
-- ✅ **Offline Capable** - Works without internet connection
+- ✅ **Mindee OCR** – Cloud-based Universal OCR for high-accuracy extraction
+- ✅ **Tesseract OCR** – Local fallback when Mindee can't parse the table
+- ✅ **Privacy-Conscious** – Only the uploaded document is sent to Mindee; Tesseract remains fully local
+- ✅ **Resilient** – Automatic retries, polling, and fallback logic handle transient failures
+- ✅ **Developer Friendly** – Dedicated test/debug scripts and structured logging for both engines
 
 ## Architecture
 
-### 1. Image Preprocessing (`server/lib/imagePreprocessor.ts`)
+### 1. Mindee OCR Integration (`server/api/mindeeOcr.ts`)
+
+- Sends documents to Mindee's Universal OCR endpoint with automatic retries and polling
+- Streams uploads via `fetch` + `FormData`, supporting any common image format
+- Normalizes Mindee responses into a single text block, aggregates confidence scores, and exposes raw field metadata for debugging
+- Surfaces job IDs and detailed warnings in logs to simplify production debugging
+
+### 2. Image Preprocessing (`server/lib/imagePreprocessor.ts`)
 
 Before OCR, images are enhanced using Sharp library:
 - **Grayscale conversion** - Removes color noise
@@ -26,7 +33,7 @@ Three preprocessing strategies are tried in sequence:
 2. **Standard** - Balanced approach
 3. **Aggressive** - For low-quality or angled photos
 
-### 2. OCR Processing (`server/lib/ocrConfig.ts`)
+### 3. OCR Processing (`server/lib/ocrConfig.ts`)
 
 Uses Tesseract.js configured for:
 - English language recognition
@@ -34,7 +41,7 @@ Uses Tesseract.js configured for:
 - Character whitelist (letters, numbers, punctuation)
 - Optimized for structured data
 
-### 3. Table Parsing (`server/lib/tableParser.ts`)
+### 4. Table Parsing (`server/lib/tableParser.ts`)
 
 Extracts partner data from OCR text using pattern matching:
 
@@ -52,7 +59,11 @@ Home Store | Partner Name          | Partner Number | Total Tippable Hours
 4. Validate data (reasonable hour ranges, proper name format)
 5. Calculate confidence score
 
-### 4. API Integration (`server/api/ocr.ts`)
+### 5. API Integration (`server/api/ocr.ts`)
+
+- Wraps the Mindee/Tesseract orchestration via `analyzeImageWithService`
+- Auto mode tries Mindee first, then falls back to Tesseract based on confidence
+- Exposes a lightweight API response with extracted text, partner data, engine, and confidence
 
 Main entry point for OCR operations:
 - Tries multiple preprocessing strategies
@@ -100,7 +111,11 @@ const result = await response.json();
     { "name": "Lastname, Firstname", "hours": 27.10 },
     { "name": "Smith, John", "hours": 35.50 }
   ],
-  "confidence": 85
+  "confidence": 85,
+  "jobId": "doc_12345",
+  "fields": [
+    { "name": "total", "value": "123.45", "confidence": 0.92 }
+  ]
 }
 ```
 

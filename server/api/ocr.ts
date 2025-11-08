@@ -1,9 +1,11 @@
 /**
  * OCR API implementation with multiple engine support
- * Supports: Azure Computer Vision (primary), Tesseract (fallback)
+ * Supports: Mindee OCR (primary) with Tesseract fallback
  */
 
 import { analyzeImageWithService, OCREngine } from '../lib/ocrService';
+import { preprocessImage } from '../lib/imagePreprocessor';
+import { performOCR } from '../lib/ocrConfig';
 
 interface OCRResult {
   text: string | null;
@@ -11,6 +13,8 @@ interface OCRResult {
   confidence?: number;
   engine?: string;
   error?: string;
+  jobId?: string;
+  fields?: Array<Record<string, unknown>>;
 }
 
 /**
@@ -34,19 +38,23 @@ export async function analyzeImage(imageBuffer: Buffer, engine?: OCREngine): Pro
       console.log(`OCR successful with ${result.engine}: ${result.partnerData.length} partners extracted`);
       return result;
     }
-    
+
     // If no good results, return error
     console.log('OCR failed to extract partner data');
     return {
       text: result.text,
       error: result.error || 'Could not extract partner information from the image. Please ensure the image is clear and shows the Tip Distribution Report table.',
       engine: result.engine,
+      jobId: result.jobId,
+      fields: result.fields,
     };
   } catch (error) {
     console.error('OCR analysis error:', error);
     return {
       text: null,
       error: 'An error occurred during OCR processing. Please try again with a clearer image.',
+      jobId: undefined,
+      fields: undefined,
     };
   }
 }
@@ -58,16 +66,26 @@ export async function analyzeImage(imageBuffer: Buffer, engine?: OCREngine): Pro
  */
 export async function extractTextOnly(imageBuffer: Buffer): Promise<{ text: string | null; error?: string }> {
   try {
+    // Try Mindee first for higher accuracy text extraction
+    const mindeeResult = await analyzeImageWithService(imageBuffer, 'mindee');
+
+    if (mindeeResult.text && mindeeResult.text.trim().length > 0) {
+      return mindeeResult.error
+        ? { text: mindeeResult.text, error: mindeeResult.error }
+        : { text: mindeeResult.text };
+    }
+
+    // Fallback to Tesseract if Mindee failed to return text
     const processedBuffer = await preprocessImage(imageBuffer);
     const text = await performOCR(processedBuffer);
-    
+
     if (!text || text.trim().length === 0) {
       return {
         text: null,
         error: 'No text could be extracted from the image',
       };
     }
-    
+
     return { text };
   } catch (error) {
     console.error('Text extraction error:', error);

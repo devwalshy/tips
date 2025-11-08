@@ -12,9 +12,10 @@
     "format": "prettier --write \"{src,server,shared}/**/*.{ts,tsx,md,css}\"",
     "db:push": "drizzle-kit push",
     "test:ocr": "tsx server/test-ocr.ts",
-    "test:azure": "tsx server/test-azure-ocr.ts",
+    "test:mindee": "tsx server/test-mindee-ocr.ts",
+    "test:mindee:normalize": "tsx --test server/api/mindeeOcr.normalize.test.ts",
     "debug:ocr": "tsx server/debug-ocr.ts",
-    "debug:azure": "tsx server/debug-azure-text.ts",
+    "debug:mindee": "tsx server/debug-mindee-text.ts",
     "netlify:dev": "netlify dev",
     "netlify:deploy": "netlify deploy --build",
     "netlify:deploy:prod": "netlify deploy --build --prod"
