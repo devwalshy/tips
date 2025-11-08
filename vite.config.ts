@@ -1,7 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+const rootDir = fileURLToPath(new URL(".", import.meta.url));
+const resolveFromRoot = (...segments: string[]) => path.resolve(rootDir, ...segments);
+const toPosix = (inputPath: string) => inputPath.replace(/\\/g, "/");
 
 export default defineConfig(async ({ mode }) => {
   const plugins = [react(), runtimeErrorOverlay()];
@@ -14,17 +19,18 @@ export default defineConfig(async ({ mode }) => {
   return {
     plugins,
     resolve: {
-      alias: {
-        "@": path.resolve(import.meta.dirname, "src"),
-        "@shared": path.resolve(import.meta.dirname, "shared"),
-        "@assets": path.resolve(import.meta.dirname, "src", "assets"),
-        "@utils": path.resolve(import.meta.dirname, "src", "utils"),
-      },
+      alias: [
+        { find: "@", replacement: resolveFromRoot("src") },
+        { find: /^@\//, replacement: `${toPosix(resolveFromRoot("src"))}/` },
+        { find: "@shared", replacement: resolveFromRoot("shared") },
+        { find: "@assets", replacement: resolveFromRoot("src", "assets") },
+        { find: "@utils", replacement: resolveFromRoot("src", "utils") },
+      ],
     },
     build: {
-      outDir: path.resolve(import.meta.dirname, "dist/public"),
+      outDir: resolveFromRoot("dist/public"),
       emptyOutDir: true,
     },
-    publicDir: path.resolve(import.meta.dirname, "public"),
+    publicDir: resolveFromRoot("public"),
   };
 });
