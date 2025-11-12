@@ -2,14 +2,20 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const resolveFromRoot = (...segments: string[]) => path.resolve(rootDir, ...segments);
 const toPosix = (inputPath: string) => inputPath.replace(/\\/g, "/");
 
 export default defineConfig(async ({ mode }) => {
-  const plugins = [react(), runtimeErrorOverlay()];
+  const plugins = [react()];
+
+  if (mode !== "production") {
+    const { default: runtimeErrorOverlay } = await import(
+      "@replit/vite-plugin-runtime-error-modal"
+    );
+    plugins.push(runtimeErrorOverlay());
+  }
 
   if (mode !== "production" && process.env.REPL_ID !== undefined) {
     const { cartographer } = await import("@replit/vite-plugin-cartographer");
